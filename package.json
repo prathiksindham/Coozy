@@ -5,15 +5,13 @@
   "main": "script.js",
   "scripts": {
     "start": "python3 server.py",
-    "dev": "python3 server.py",
-    "build:agentation": "esbuild agentation-entry.js --bundle --format=iife --define:process.env.NODE_ENV='\"production\"' --outfile=agentation-bundle.js"
+    "dev": "python3 server.py"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "agentation": "^3.0.2",
     "esbuild": "^0.28.1",
     "puppeteer-core": "^25.2.1",
     "react": "^18.3.1",
