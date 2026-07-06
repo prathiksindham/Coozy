@@ -690,6 +690,16 @@ updateBg();
 
 /* ---------- Playback: local <audio> (primary) + optional YouTube ---------- */
 const IS_FILE = location.protocol === "file:";
+// Which YouTube playback path to use. The IFrame embed refuses to play from
+// loopback origins (localhost / 127.0.0.1 / file://), so there we resolve the
+// audio server-side with yt-dlp. On a real hosted origin the IFrame works AND
+// plays from each visitor's own browser/IP — which sidesteps YouTube's
+// datacenter bot-block that breaks the server-side proxy when deployed.
+const IS_LOCAL = IS_FILE
+  || location.hostname === "localhost"
+  || location.hostname === "127.0.0.1"
+  || location.hostname === "";
+const USE_IFRAME = !IS_LOCAL;   // hosted -> in-browser IFrame; local -> /api/audio
 const audioEl = document.getElementById("audio");
 let audioRetries = 0;   // auto-retry counter for transient audio-stream failures
 const ytHost  = document.getElementById("yt-host");
@@ -813,7 +823,7 @@ function engineFor(d) {
   if (!d) return "none";
   if (d.spotify) return "spotify";
   if (d.audio) return "audio";
-  if (d.yt && !IS_FILE) return "audio";   // YouTube now plays via the server audio stream
+  if (d.yt) return USE_IFRAME ? "yt" : "audio";   // IFrame when hosted, server-side audio on localhost
   return "none";
 }
 function showYTBox(show) { if (ytHost) ytHost.style.display = show ? "" : "none"; }
@@ -1020,10 +1030,20 @@ setInterval(() => {
   }
 }, 500);
 
-/* YouTube now plays via the server audio stream (/api/audio), not the IFrame
-   embed — which YouTube blocks on loopback origins. Keep the hidden box hidden
-   and don't load the (blocked) iframe API. */
-(function () { showYTBox(false); })();
+/* Hosted: load the YouTube IFrame API so playback happens in the visitor's own
+   browser (their IP), sidestepping the datacenter bot-block that breaks the
+   server-side /api/audio proxy. Local/loopback: skip it — the IFrame refuses
+   loopback origins there, so /api/audio (yt-dlp) stays the playback path. */
+(function () {
+  if (USE_IFRAME && !window.YT && !document.getElementById("yt-iframe-api")) {
+    const s = document.createElement("script");
+    s.id = "yt-iframe-api";
+    s.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(s);
+  } else {
+    showYTBox(false);
+  }
+})();
 
 showYTBox(engineFor(DISCS[index]) === "yt");
 updateCard();
