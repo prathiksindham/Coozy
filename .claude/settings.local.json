@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 test_lrclib.py)",
+      "Bash(python3 test_fetch_lyrics.py)",
+      "Bash(pkill -f \"python3 server.py\")",
+      "Bash(nohup python3 server.py)",
+      "Bash(python3 *)",
+      "Bash(curl -4 -s -o /dev/null -w \"http_code=%{http_code} time=%{time_total}\\\\n\" --max-time 15 \"https://lrclib.net/api/search?q=hello+adele\")",
+      "Bash(curl -s -o /dev/null -w \"http_code=%{http_code} time=%{time_total}\\\\n\" --max-time 15 \"https://lrclib.net/api/search?q=hello+adele\")",
+      "Bash(env)",
+      "Bash(scutil --proxy)",
+      "Bash(nslookup -type=AAAA lrclib.net)",
+      "Bash(curl -4 -s -o /dev/null -w \"code=%{http_code} t=%{time_total}\\\\n\" --max-time 15 -A \"retro-music-player \\(https://github.com/local/music\\)\" \"https://lrclib.net/api/search?q=hello+adele\")",
+      "Bash(xargs kill -9)",
+      "Bash(gh auth *)",
+      "Bash(gh api *)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(grep -E \"\\\\.env$|\\\\.session_secret|node_modules|\\\\.onnx$|^models/|\\\\.db$\")",
+      "Bash(xargs -0 du -ch)",
+      "Bash(xargs -0 ls -la)",
+      "Bash(sort -k5 -n -r)",
+      "Bash(awk '{printf \"%.1fMB  %s\\\\n\", $5/1048576, $9}')"
+    ]
+  }
+}

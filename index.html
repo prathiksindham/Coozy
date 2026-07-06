@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CD Player Carousel</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <!-- Login drawer typefaces (Figma design). Fallback to the app's stack if offline. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600&family=Hanken+Grotesk:wght@400;500&family=Spline+Sans:wght@400&display=swap" />
+  <link rel="stylesheet" href="style.css?v=123" />
+</head>
+<body>
+  <!-- Apple-style Liquid Glass: refraction filter + exact Figma vector clip shape -->
+  <svg class="lg-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="liquid-glass" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.008 0.014" numOctaves="2" seed="42" stitchTiles="stitch" result="noise"/>
+        <feGaussianBlur in="noise" stdDeviation="1.6" result="soft"/>
+        <feDisplacementMap in="SourceGraphic" in2="soft" scale="9" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <!-- Maxuiux "mini liquid lens": a radial normal map (blue centre -> white rim)
+           displaces the backdrop outward at the edges, magnifying the track/fill the
+           runtime thumb rides over. Used only while the thumb is being dragged. -->
+      <filter id="mini-liquid-lens" x="-50%" y="-50%" width="200%" height="200%">
+        <feImage x="0" y="0" result="normalMap" xlink:href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><radialGradient id='invmap' cx='50%25' cy='50%25' r='75%25'><stop offset='0%25' stop-color='rgb(128,128,255)'/><stop offset='90%25' stop-color='rgb(255,255,255)'/></radialGradient><rect width='100%25' height='100%25' fill='url(%23invmap)'/></svg>" />
+        <feDisplacementMap in="SourceGraphic" in2="normalMap" scale="-90" xChannelSelector="R" yChannelSelector="G" result="displaced" />
+        <feMerge><feMergeNode in="displaced" /></feMerge>
+      </filter>
+      <!-- exact Figma vector path (12:37), normalised + mirrored (tab on top-right) -->
+      <clipPath id="glassClip" clipPathUnits="objectBoundingBox">
+        <path d="M0.932065 0 L0.990148 0 C0.995589 0 1 0.004182 1 0.009346 L1 0.990654 C1 0.995817 0.995589 1 0.990148 1 L0.009852 1 C0.004409 1 0 0.995817 0 0.990654 L0 0.328779 C0 0.323618 0.004409 0.319433 0.009852 0.319433 L0.912361 0.319433 C0.917803 0.319433 0.922213 0.315249 0.922213 0.310087 L0.922213 0.009346 C0.922213 0.004182 0.926624 0 0.932065 0 Z"/>
+      </clipPath>
+    </defs>
+  </svg>
+
+  <section class="player" id="player" aria-roledescription="carousel" aria-label="CD player">
+
+    <!-- Fixed jewel-case frame (stays centered) -->
+    <div class="player__frame" aria-hidden="true">
+      <img class="player__case" id="playerCase" src="assets_case.png" alt="" draggable="false" />
+    </div>
+
+    <!-- Moving discs (slide through the frame like changing the song) -->
+    <div class="player__track" id="track">
+      <!-- .disc elements injected by JS -->
+    </div>
+
+    <!-- Frame overlay: parts of the case that sit ABOVE the disc (e.g. a tonearm) -->
+    <img class="player__overlay" id="playerOverlay" alt="" draggable="false" aria-hidden="true" hidden />
+
+    <!-- Apple-Music-style synced lyrics — appears IN PLACE of the CD frame when toggled.
+         Upward-scrolling flow: the incoming line rises from the bottom to the centre
+         with the gooey "morphing text" effect; the outgoing line rises up and fades away. -->
+    <div class="lyrics-stage" id="lyricsStage" aria-hidden="true" hidden>
+      <div class="lyrics-flow" id="lyricsFlow">
+        <div class="lyr-cur" id="lyrCur">
+          <span class="lyr-morph"><span class="m1"></span><span class="m2"></span></span>
+        </div>
+        <div class="lyr-next" id="lyrNext"></div>
+      </div>
+      <div class="lyrics-plain" id="lyricsPlain" hidden></div>
+      <div class="lyrics-status" id="lyricsStatus"></div>
+    </div>
+
+    <!-- Now-playing info, below the cassette frame. In lyrics mode this becomes the
+         Figma 134:477 bar: a mini cassette (jewel case + album-art disc) beside the info. -->
+    <div class="nowplaying" id="nowplaying">
+      <div class="np__cover" id="npCover" aria-hidden="true">
+        <img class="np__cover-case" src="assets_case.png" alt="" draggable="false" />
+        <span class="np__cover-disc">
+          <img class="np__cover-art" id="npCoverArt" alt="" draggable="false" />
+          <span class="np__cover-hub" aria-hidden="true"></span>
+        </span>
+      </div>
+
+      <div class="np__body">
+        <div class="np__head">
+          <div class="np__meta">
+            <div class="np__title" id="trackTitle">Good News</div>
+            <div class="np__artist" id="trackArtist">Mac Miller</div>
+          </div>
+          <label class="container" id="heartBtn" aria-label="Like">
+            <input type="checkbox" />
+            <svg class="checkmark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          </label>
+        </div>
+
+        <div class="np__progress">
+          <span class="np__time" id="timeCur">00:00</span>
+          <div class="np__bar"><span class="np__fill"><span class="np__thumb" aria-hidden="true"><span class="np__thumb-filter"></span><span class="np__thumb-overlay"></span><span class="np__thumb-specular"></span></span></span></div>
+          <span class="np__time" id="timeDur">00:00</span>
+        </div>
+
+        <div class="np__controls">
+          <button class="np__ctrl" id="ctrlPrev" aria-label="Previous">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14M20 5L9 12l11 7z"/></svg>
+          </button>
+          <button class="np__ctrl np__ctrl--play" id="ctrlPlay" aria-label="Play/Pause" aria-pressed="false">
+            <svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>
+            <svg class="ic-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h4v16H7zM13 4h4v16h-4z"/></svg>
+          </button>
+          <button class="np__ctrl" id="ctrlNext" aria-label="Next">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 5v14M4 5l11 7L4 19z"/></svg>
+          </button>
+          <button class="np__lyrics" id="lyricsBtn" aria-label="Lyrics" aria-pressed="false" title="Lyrics">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h11M4 12h16M4 17.5h9M18.5 15.2V8.6l3 -0.9v6.1"/><circle cx="17" cy="15.4" r="1.7"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Immersive backdrop (active album art) shown in full view -->
+  <div class="stage-bg" id="stageBg" aria-hidden="true"></div>
+
+  <!-- Source switch: YouTube <-> Spotify -->
+  <div class="source-switch" id="sourceSwitch" role="tablist" aria-label="Music source">
+    <div class="src-thumb" id="srcThumb" aria-hidden="true"></div>
+    <button class="src-btn is-active" id="srcYouTube" data-src="youtube" role="tab" aria-selected="true" title="YouTube">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="5" width="21" height="14" rx="4.2" fill="#FF0000"/><path d="M10 8.5l5.5 3.5L10 15.5z" fill="#fff"/></svg>
+    </button>
+    <button class="src-btn" id="srcSpotify" data-src="spotify" role="tab" aria-selected="false" title="Spotify">
+      <svg viewBox="0 0 168 168" aria-hidden="true"><circle cx="84" cy="84" r="84" fill="#1ED760"/><path fill="#000" d="M122.5 121.3c-1.5 2.5-4.7 3.3-7.2 1.8-19.7-12-44.5-14.8-73.7-8.1-2.8.6-5.6-1.1-6.3-3.9-.6-2.8 1.1-5.6 3.9-6.3 31.9-7.3 59.3-4.1 81.4 9.4 2.5 1.6 3.3 4.8 1.9 7.1zm10.3-22.9c-1.9 3.1-6 4.1-9.1 2.2-22.6-13.9-57-17.9-83.7-9.8-3.5 1.1-7.2-.9-8.2-4.4-1.1-3.5.9-7.2 4.4-8.3 30.6-9.3 68.5-4.8 94.5 11.1 3.1 1.9 4.1 6 2.1 9.2zm.9-23.9C107 57.6 63.9 55.9 39 63.5c-4.2 1.3-8.6-1.1-9.9-5.3-1.3-4.2 1.1-8.6 5.3-9.9 28.6-8.7 76.2-7 106.4 10.9 3.8 2.2 5 7.1 2.8 10.8-2.2 3.7-7.1 5-10.8 2.7z"/></svg>
+    </button>
+  </div>
+
+  <!-- Connect Spotify modal -->
+  <div class="pladd-overlay" id="spOverlay" hidden></div>
+  <div class="pladd sp-modal" id="spModal" role="dialog" aria-label="Connect Spotify" hidden>
+    <div class="pladd__head">
+      <span>Connect Spotify</span>
+      <button class="pladd__close" id="spClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="sp-modal__body">
+      <p class="sp-hint">Spotify <b>Premium</b> is required for full playback. Create an app at
+        <b>developer.spotify.com/dashboard</b>, paste its <b>Client ID</b> below, and add this exact
+        <b>Redirect URI</b> to the app’s settings:</p>
+      <code class="sp-redirect" id="spRedirect"></code>
+      <input id="spClientId" class="sp-input" placeholder="Spotify Client ID" autocomplete="off" spellcheck="false" />
+      <button id="spConnect" class="sp-connect">Connect Spotify</button>
+      <p class="sp-status" id="spStatus"></p>
+    </div>
+  </div>
+
+  <!-- Effect picker (top-left dropdown) -->
+  <div class="fx-picker" id="fxPicker" aria-label="Disc effect">
+    <button class="fx-toggle" id="fxToggle" aria-haspopup="listbox" aria-expanded="false" aria-label="Effect" title="Effect">
+      <svg class="fx-ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+      <span class="fx-toggle-val" id="fxToggleVal" hidden>Dither</span>
+    </button>
+    <div class="fx-menu" id="fxMenu" role="listbox" hidden>
+      <button class="fx-opt" data-fx="none" role="option">None</button>
+      <button class="fx-opt" data-fx="ascii" role="option">ASCII</button>
+      <button class="fx-opt is-active" data-fx="dither" role="option">Dither</button>
+      <button class="fx-opt" data-fx="acid" role="option">Acid</button>
+      <button class="fx-opt" data-fx="halftone" role="option">Halftone</button>
+      <button class="fx-opt" data-fx="posterize" role="option">Posterize</button>
+      <button class="fx-opt" data-fx="grayscale" role="option">Grayscale</button>
+      <button class="fx-opt" data-fx="sepia" role="option">Sepia</button>
+      <button class="fx-opt" data-fx="invert" role="option">Invert</button>
+      <button class="fx-opt" data-fx="vhs" role="option">VHS</button>
+      <button class="fx-opt" data-fx="thermal" role="option">Thermal Gradient</button>
+      <button class="fx-opt" data-fx="pinterest" role="option">Color Flow</button>
+    </div>
+  </div>
+
+  <!-- Playlist selector (top-center) -->
+  <div class="pl-picker" id="plPicker" aria-label="Playlist">
+    <button class="pl-toggle" id="plToggle" aria-haspopup="dialog" aria-expanded="false" aria-label="Playlist" title="Playlist">
+      <svg class="pl-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h7"/><circle cx="18" cy="16" r="3"/><path d="M21 16V7l-3 1"/></svg>
+      <span class="pl-name" id="plName" hidden>Liked Songs</span>
+    </button>
+  </div>
+
+  <!-- Frame switcher (below the playlist button) -->
+  <div class="frame-picker" id="framePicker" aria-label="Cassette frame">
+    <button class="fx-toggle" id="frameToggle" aria-haspopup="listbox" aria-expanded="false" aria-label="Frame" title="Frame">
+      <svg class="fx-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="12" r="3.4"/></svg>
+    </button>
+    <div class="fx-menu" id="frameMenu" role="listbox" hidden></div>
+  </div>
+
+  <!-- Voice control (below the frame button). The white ripple shows inside while listening. -->
+  <button class="mic-btn" id="micBtn" aria-label="Voice control" title="Voice control" aria-pressed="false">
+    <svg class="mic-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+    <!-- Listening ripple (Uiverse.io by Smit-Prajapati) — rings only -->
+    <div class="loader" aria-hidden="true">
+      <div class="box"></div>
+      <div class="box"></div>
+      <div class="box"></div>
+      <div class="box"></div>
+      <div class="box"></div>
+    </div>
+  </button>
+
+  <!-- Voice pill (blob + streaming text). No mic icon; fixed frame, text streams to fit. -->
+  <div class="voice-toast" id="voiceToast" role="status" aria-live="polite" hidden>
+    <span class="vt-blob" aria-hidden="true"><canvas id="micRive"></canvas></span>
+    <span class="vt-ic" id="voiceIcon" aria-hidden="true"></span>
+    <span class="vt-text" id="voiceText">Listening…</span>
+  </div>
+
+  <!-- Gooey threshold filter for the morphing-text caption (Sable speaking) -->
+  <svg id="vtFilters" width="0" height="0" aria-hidden="true" style="position:absolute">
+    <defs>
+      <filter id="vtThreshold" color-interpolation-filters="sRGB">
+        <feColorMatrix in="SourceGraphic" type="matrix"
+          values="1 0 0 0 0
+                  0 1 0 0 0
+                  0 0 1 0 0
+                  0 0 0 255 -140" />
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Playlist drawer: the songs in the current playlist (like the search drawer) -->
+  <div class="sheet-overlay" id="plSheetOverlay" hidden></div>
+  <aside class="sheet" id="plSheet" aria-hidden="true" aria-label="Playlist songs">
+    <div class="sheet__head">
+      <h2 class="sheet__title" id="plSheetTitle">Liked Songs</h2>
+      <div class="sheet__headbtns">
+        <button class="sheet__close" id="plSheetDelete" aria-label="Delete this playlist" title="Delete this playlist" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>
+        </button>
+        <button class="sheet__close" id="plSheetClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="pl-tabs" id="plTabs"></div>
+    <div class="sheet__results" id="plSongs"></div>
+  </aside>
+
+  <!-- Add-song button (top-right) -->
+  <button class="add-btn" id="addBtn" aria-label="Add a song">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+
+  <!-- Add-song sheet (slides in from the right) -->
+  <div class="sheet-overlay" id="sheetOverlay" hidden></div>
+  <aside class="sheet" id="addSheet" aria-hidden="true" aria-label="Add a song">
+    <div class="sheet__head">
+      <h2 class="sheet__title">Add a song</h2>
+      <button class="sheet__close" id="sheetClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="sheet__search">
+      <svg class="sheet__search-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="searchInput" type="text" autocomplete="off" spellcheck="false"
+             placeholder="Search YouTube or paste a link…" />
+      <button class="sheet__clear" id="searchClear" aria-label="Clear" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="sheet__results" id="results"></div>
+
+    <details class="sheet__settings" id="apiSettings">
+      <summary>YouTube API key (optional)</summary>
+      <div class="sheet__key">
+        <input id="apiKeyInput" type="password" autocomplete="off" placeholder="Paste API key…" />
+        <button id="apiKeySave" class="sheet__keybtn">Save</button>
+      </div>
+      <p class="sheet__hint">Search works without a key via the local server. A key is only a fallback if the server can’t reach YouTube.</p>
+    </details>
+  </aside>
+
+  <!-- "Add to playlist" chooser (opens from a search result's + ) -->
+  <div class="pladd-overlay" id="plAddOverlay" hidden></div>
+  <div class="pladd" id="plAdd" role="dialog" aria-label="Add to playlist" hidden>
+    <div class="pladd__head">
+      <span>Add to playlist</span>
+      <button class="pladd__close" id="plAddClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="pladd__new">
+      <input id="plAddNewInput" type="text" autocomplete="off" placeholder="New playlist…" maxlength="40" />
+      <button id="plAddNewBtn" class="pladd__newbtn">＋ Create</button>
+    </div>
+    <div class="pladd__list" id="plAddList"></div>
+  </div>
+
+
+  <!-- Toggle: carousel <-> full-screen now-playing view -->
+  <button class="view-toggle" id="viewToggle" aria-label="Full view" aria-pressed="false">
+    <svg class="ic-expand" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    <svg class="ic-collapse" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+  </button>
+
+  <!-- Local audio engine (works by double-clicking the file; no server needed) -->
+  <audio id="audio" preload="metadata"></audio>
+
+  <!-- YouTube audio player: kept in the DOM (offscreen) so audio plays; no visible badge -->
+  <div id="yt-host" aria-hidden="true">
+    <div id="yt-player"></div>
+  </div>
+
+  <!-- ===== Sign-in drawer (Figma 122:53) — slides in from the left, max 480px ===== -->
+  <div class="login-overlay" id="loginOverlay" hidden></div>
+  <aside class="login-drawer" id="loginDrawer" role="dialog" aria-modal="true" aria-label="Sign in to Music" aria-hidden="true" hidden>
+    <button class="login-drawer__close" id="loginClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+
+    <div class="login-inner">
+      <!-- Login block -->
+      <div class="login-card">
+        <div class="login-logo" aria-hidden="true">
+          <img class="login-logo__glow" src="assets/login/vinyl-a.png" alt="" />
+          <img class="login-logo__disc" src="assets/login/vinyl-b.png" alt="" />
+        </div>
+        <h1 class="login-title">Welcome to Music</h1>
+        <p class="login-sub">Log in or register to save your playlists.</p>
+
+        <button class="login-google" id="loginGoogleBtn" type="button">
+          <img class="login-google__g" src="assets/login/google-g.svg" alt="" aria-hidden="true" />
+          <span>Continue with Google</span>
+        </button>
+
+        <div class="login-rule" aria-hidden="true"></div>
+
+        <p class="login-fine">Sign-in is handled securely by Google.<br />Privacy · Terms</p>
+      </div>
+
+      <!-- Quote + listeners -->
+      <div class="login-foot">
+        <blockquote class="login-quote">
+          <p class="login-quote__text">“A thought is love's currency”</p>
+          <p class="login-quote__by">Mac Miller, Objects in the Mirror</p>
+        </blockquote>
+        <div class="login-avatars" aria-hidden="true">
+          <span class="login-av login-av--ring">
+            <img class="login-av__ring" src="assets/login/ring.svg?v=123" alt="" />
+            <img class="login-av__img" src="assets/login/av-0.png" alt="" />
+          </span>
+          <span class="login-av"><img class="login-av__img" src="assets/login/av-1.png" alt="" /></span>
+          <span class="login-av"><img class="login-av__img" src="assets/login/av-2.png" alt="" /></span>
+          <span class="login-av"><img class="login-av__img" src="assets/login/av-3.png" alt="" /></span>
+          <span class="login-av"><img class="login-av__img" src="assets/login/av-4.png" alt="" /></span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Rive web runtime (for the mic listening animation) -->
+  <script src="https://unpkg.com/@rive-app/canvas@2"></script>
+  <script src="script.js?v=123"></script>
+  <script src="spotify.js?v=123"></script>
+  <script src="wake.js?v=123"></script>
+  <script src="liquidglass.js?v=123"></script>
+  <script src="login.js?v=123"></script>
+
+  <!-- Agentation visual-feedback toolbar (self-contained bundle; works from file:// too) -->
+  <script src="agentation-bundle.js"></script>
+</body>
+</html>

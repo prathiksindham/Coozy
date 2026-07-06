@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Morph test</title>
+  <link rel="stylesheet" href="style.css?v=74" />
+  <style>
+    body { margin:0; min-height:100vh; background:#0b0d12; display:flex; align-items:center; justify-content:center; }
+    #voiceToast { position:static !important; transform:none !important; opacity:1 !important; }
+    .hint { position:fixed; top:16px; left:0; right:0; text-align:center; color:#8aa; font:13px system-ui; }
+  </style>
+</head>
+<body>
+  <div class="hint">Morph test — two centered words morph into the next two words.</div>
+
+  <div class="voice-toast sable has-blob is-show" id="voiceToast" role="status">
+    <span class="vt-blob" aria-hidden="true"></span>
+    <span class="vt-text" id="voiceText"></span>
+  </div>
+
+  <svg id="vtFilters" width="0" height="0" aria-hidden="true" style="position:absolute">
+    <defs>
+      <filter id="vtThreshold" color-interpolation-filters="sRGB">
+        <feColorMatrix in="SourceGraphic" type="matrix"
+          values="1 0 0 0 0
+                  0 1 0 0 0
+                  0 0 1 0 0
+                  0 0 0 255 -140" />
+      </filter>
+    </defs>
+  </svg>
+
+  <script>
+    // exact reference morph engine, TWO words per unit
+    const voiceText = document.getElementById("voiceText");
+    voiceText.innerHTML = '<span class="vt-morph"><span class="m1"></span><span class="m2"></span></span>';
+    const m1 = voiceText.querySelector(".m1"), m2 = voiceText.querySelector(".m2");
+    // responsive grouping: pack as many words as fit the chip per group
+    const UNIT_MAXW = 580;
+    const mctx = document.createElement("canvas").getContext("2d");
+    function measure(t){ mctx.font = '700 64px "Inter", system-ui, sans-serif'; return mctx.measureText(t).width; }
+    function mkUnits(words){
+      const units = []; let cur = [];
+      for (const w of words){
+        if (cur.length && measure(cur.concat(w).join(" ")) > UNIT_MAXW){ units.push(cur.join(" ")); cur=[w]; }
+        else cur.push(w);
+      }
+      if (cur.length) units.push(cur.join(" "));
+      return units;
+    }
+    const texts = mkUnits("play this song called Cinderella by Remi Wolf it is dream pop royalty honestly".split(" "));
+    const morphTime = 1, cooldownTime = 0.35;
+    let ti = texts.length - 1, time = new Date(), morph = 0, cooldown = cooldownTime;
+    m1.textContent = texts[ti % texts.length];
+    m2.textContent = texts[(ti + 1) % texts.length];
+    function setMorph(f) {
+      m2.style.filter = "blur(" + Math.min(8 / f - 8, 100) + "px)";
+      m2.style.opacity = Math.pow(f, 0.4) * 100 + "%";
+      f = 1 - f;
+      m1.style.filter = "blur(" + Math.min(8 / f - 8, 100) + "px)";
+      m1.style.opacity = Math.pow(f, 0.4) * 100 + "%";
+      m1.textContent = texts[ti % texts.length];
+      m2.textContent = texts[(ti + 1) % texts.length];
+    }
+    function doMorph() {
+      morph -= cooldown; cooldown = 0;
+      let f = morph / morphTime;
+      if (f > 1) { cooldown = cooldownTime; f = 1; }
+      setMorph(f);
+    }
+    function doCooldown() {
+      morph = 0;
+      m2.style.filter = ""; m2.style.opacity = "100%";
+      m1.style.filter = ""; m1.style.opacity = "0%";
+    }
+    function animate() {
+      requestAnimationFrame(animate);
+      const newTime = new Date();
+      const shouldInc = cooldown > 0;
+      const dt = (newTime - time) / 1000; time = newTime;
+      cooldown -= dt;
+      if (cooldown <= 0) { if (shouldInc) ti++; doMorph(); } else doCooldown();
+    }
+    animate();
+  </script>
+</body>
+</html>

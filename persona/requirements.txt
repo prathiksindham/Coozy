@@ -1,0 +1,3 @@
+anthropic>=0.40.0
+piper-tts        # Sable's natural local voice (no API key). Needs a voice model in persona/voices/
+yt-dlp           # server-side YouTube audio proxy

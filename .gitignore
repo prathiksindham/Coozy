@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Secrets & credentials — never commit
+persona/.env
+data/.session_secret
+
+# Runtime data (SQLite db of accounts/sessions)
+data/*.db
+
+# Large ML model binaries — re-downloadable, not source (see AGENTS.md)
+models/
+*.onnx
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS / editor cruft
+.DS_Store
+*.swp
