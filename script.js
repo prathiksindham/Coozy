@@ -1219,10 +1219,7 @@ const sheetClose = document.getElementById("sheetClose");
 const searchInput = document.getElementById("searchInput");
 const searchClear = document.getElementById("searchClear");
 const resultsEl = document.getElementById("results");
-const apiKeyInput = document.getElementById("apiKeyInput");
-const apiKeySave = document.getElementById("apiKeySave");
-const apiSettings = document.getElementById("apiSettings");
-const API_KEY_LS = "ytApiKey";
+const API_KEY_LS = "ytApiKey";   // legacy: a key can still live in localStorage as a search fallback
 
 function getApiKey() { return (localStorage.getItem(API_KEY_LS) || "").trim(); }
 function escapeHTML(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
@@ -1236,9 +1233,7 @@ function showEmptyState() {
       : "Connect Spotify to search — click the Spotify logo (bottom-left).");
     return;
   }
-  setState(getApiKey()
-    ? "Search for a song, or paste a YouTube link."
-    : "Paste a YouTube link to add it instantly.<br>Or add an API key below to search by name.");
+  setState("Search for a song, or paste a YouTube link.");
 }
 
 function openSheet() {
@@ -1260,14 +1255,6 @@ sheetClose?.addEventListener("click", closeSheet);
 sheetOverlay?.addEventListener("click", closeSheet);
 window.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && addSheet?.classList.contains("is-open")) closeSheet();
-});
-
-if (apiKeyInput) apiKeyInput.value = getApiKey();
-apiKeySave?.addEventListener("click", () => {
-  localStorage.setItem(API_KEY_LS, apiKeyInput.value.trim());
-  apiSettings.removeAttribute("open");
-  const q = searchInput.value.trim();
-  if (q) runSearch(q); else showEmptyState();
 });
 
 // No-bar thumbnails: mq/maxres are 16:9 (no letterbox); hq/sd are 4:3 (bars)
