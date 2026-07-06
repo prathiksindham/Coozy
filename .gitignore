@@ -20,3 +20,6 @@ __pycache__/
 # macOS / editor cruft
 .DS_Store
 *.swp
+
+# Claude Code local machine settings (permissions allowlist, etc.)
+.claude/settings.local.json
