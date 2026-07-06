@@ -8,6 +8,11 @@
   --side-rotate: 20deg;   /* subtle 3D Y-rotation on side CDs */
   --side-depth: 70px;     /* translateZ recession per step */
   --max-visible: 4;
+  /* Non-full view: how far to lift the disc + now-playing group up from the
+     window's vertical center so the WHOLE player (disc + info + controls) is
+     centered, rather than the disc being centered and the info hanging below.
+     ≈ half the height the info/controls add beneath the disc. Tune if needed. */
+  --np-lift: 90px;
   --dither-opacity: 0.34; /* 1-bit dither strength over the CD art */
   --speed: 620ms;
   --ease: cubic-bezier(0.16, 0.84, 0.30, 1);
@@ -215,6 +220,19 @@ body {
   color: #fff;
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   pointer-events: none;                       /* children re-enable themselves */
+}
+
+/* Non-full (windowed) view: lift the disc + now-playing group up by --np-lift so
+   the whole player is vertically centered in the window, instead of the disc
+   being centered and the info/controls hanging into the lower half. Full-screen
+   view (body.is-full) bottom-anchors its own layout and is unaffected. */
+body:not(.is-full) .player__frame,
+body:not(.is-full) .player__track,
+body:not(.is-full) .player__overlay {
+  top: calc(50% - var(--np-lift));
+}
+body:not(.is-full) .nowplaying {
+  top: calc(50% - var(--np-lift) + var(--hero) / 2 + 24px);
 }
 
 /* body wrapper: head / progress / controls stacked as a column */
