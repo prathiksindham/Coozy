@@ -24,7 +24,10 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 import auth   # Google sign-in + per-user playlist storage
 
-PORT = 4747
+# Port + bind host come from the environment when hosted (Render/Railway/etc.
+# set $PORT); default to the local dev values otherwise.
+PORT = int(os.environ.get("PORT", "4747"))
+HOST = os.environ.get("HOST", "0.0.0.0")
 
 # ---- Vosk on-device wake-word model ----------------------------------------
 # The browser runs the "Maya" wake word fully locally (no cloud, nothing sent
@@ -995,7 +998,7 @@ def _prewarm_tts():
 
 
 if __name__ == "__main__":
-    print(f"music app + search on http://localhost:{PORT}")
+    print(f"music app + search on http://{HOST}:{PORT}")
     threading.Thread(target=_prewarm_tts, daemon=True).start()
     threading.Thread(target=_ensure_vosk_model, daemon=True).start()
-    ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
+    ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
