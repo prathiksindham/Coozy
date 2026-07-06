@@ -89,6 +89,7 @@
   // into the app); otherwise the local playlists migrate up to the server.
   function syncOnSignIn() {
     signedIn = true;
+    reflectAuth(true);
     fetch("/api/playlists", { credentials: "include" })
       .then((r) => r.json())
       .then((d) => {
@@ -111,6 +112,11 @@
 
   // --- signed-in state -----------------------------------------------------
   function isSignedIn() { return signedIn; }
+  // Reflect auth onto <body> so CSS can gate signed-in-only affordances (e.g.
+  // "add to playlist"): body.is-signed-in is present only when signed in.
+  function reflectAuth(on) {
+    try { document.body.classList.toggle("is-signed-in", !!on); } catch (e) {}
+  }
   function onSignedIn(user) {
     try { localStorage.setItem(USER_LS, JSON.stringify(user || {})); } catch (e) {}
     closeLogin();
@@ -196,6 +202,7 @@
         syncOnSignIn();
       } else {
         try { localStorage.removeItem(USER_LS); } catch (e) {}
+        reflectAuth(false);
         let dismissed = false;
         try { dismissed = sessionStorage.getItem(DISMISS_SS) === "1"; } catch (e) {}
         if (!dismissed) setTimeout(openLogin, 400);   // greet logged-out visitors

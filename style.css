@@ -1367,6 +1367,11 @@ body.is-full .stage-bg { opacity: 1; }
 .result__btn:active { transform: scale(0.9); }
 .result__add.is-added { background: #2ec45f; }
 .result__add.is-added svg { display: none; }
+/* Adding a song to a playlist requires a Google sign-in — hide both add-to-
+   playlist affordances (the search-result "+" and the now-playing heart) for
+   logged-out visitors. login.js sets body.is-signed-in only when signed in. */
+body:not(.is-signed-in) .result__add,
+body:not(.is-signed-in) #heartBtn { display: none !important; }
 /* Playing state: swap the play triangle for the green loading wave (Uiverse.io by mrpumps31232) */
 .loading-wave {
   display: none;

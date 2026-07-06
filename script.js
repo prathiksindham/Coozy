@@ -2538,6 +2538,12 @@ function renderAddToList() {
   });
 }
 function openAddToPlaylist(item) {
+  // Adding to a playlist is a signed-in-only feature. If a logged-out visitor
+  // somehow triggers it, send them to Google sign-in instead of opening the sheet.
+  if (!(window.LOGIN && window.LOGIN.isSignedIn && window.LOGIN.isSignedIn())) {
+    if (window.openLogin) window.openLogin();
+    return;
+  }
   pendingAddSong = item;
   if (plAddNewInput) plAddNewInput.value = "";
   renderAddToList();
