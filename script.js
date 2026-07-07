@@ -3243,15 +3243,20 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
     const seq = ++reqSeq;
     const qs = new URLSearchParams({ title: d.title || "", artist: d.artist || "" });
     if (dur) qs.set("duration", String(dur));
-    fetch("/api/lyrics?" + qs.toString())
+    // Guard against a slow/unreachable lyrics fetch hanging on "Finding lyrics…"
+    // forever — abort after 20s and fall back to the retryable "not available" state.
+    const ctrl = new AbortController();
+    const to = setTimeout(() => { try { ctrl.abort(); } catch (e) {} }, 20000);
+    fetch("/api/lyrics?" + qs.toString(), { signal: ctrl.signal })
       .then((r) => r.json())
       .then((j) => {
+        clearTimeout(to);
         if (seq !== reqSeq || k !== key) return;
         if (j && j.synced && j.synced.length) renderSynced(j.synced);
         else if (j && j.plain) renderPlain(j.plain);
         else renderNone(j && j.error);
       })
-      .catch(() => { if (seq === reqSeq) renderNone("fetch_error"); });
+      .catch(() => { clearTimeout(to); if (seq === reqSeq) renderNone("fetch_error"); });
   }
 
   // ---- highlight loop -----------------------------------------------------

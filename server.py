@@ -257,6 +257,20 @@ def _lrclib_search(q):
     return arr if isinstance(arr, list) else []
 
 
+# Decoration / feature tokens that make a YouTube-derived title fail to match a
+# clean LRCLIB entry. Stripped for a second, more lenient search pass so tracks
+# that ARE on LRCLIB (just under a cleaner name) still resolve.
+_SEARCH_STRIP_RE = re.compile(
+    r"\s*[\(\[][^)\]]*[\)\]]"                        # any (...) or [...] group
+    r"|\s*(?:feat\.?|ft\.?|featuring|with)\b.*$",    # a trailing feat/ft/with clause
+    re.I)
+
+
+def _clean_for_search(s):
+    """Drop '(Official Video)', '(feat. X)', '(remix)', '[4K]', trailing 'ft. …', etc."""
+    return _SEARCH_STRIP_RE.sub("", s or "").strip(" -–—|").strip()
+
+
 def fetch_lyrics(artist, title, duration=None):
     """Return {synced:[{t,text}]|None, plain:str|None, found:bool, error:str|None}."""
     key = (artist or "").lower().strip() + "|" + (title or "").lower().strip()
@@ -285,14 +299,27 @@ def fetch_lyrics(artist, title, duration=None):
     #    succeeds where a slow/timed-out get didn't, and it's our ONLY source of
     #    *synced* lyrics (the yt/gemini fallbacks below are plain-text only).
     if not rec:
-        try:
-            hits = _lrclib_search(((title or "") + " " + (artist or "")).strip())
-            api_error = None       # search reached lrclib, so clear the get error
-        except Exception as e:
-            hits = []
-            api_error = api_error or str(e)
-        if hits:
-            rec = next((h for h in hits if h.get("syncedLyrics")), None) or hits[0]
+        # Try the query as-is, then a decoration-stripped retry (drops the
+        # "(Official Video)", "(feat. X)", "(remix)", "[4K]" noise that is the
+        # usual reason a track that IS on LRCLIB fails to match).
+        queries = [((title or "") + " " + (artist or "")).strip()]
+        ct = _clean_for_search(title)
+        if ct and ct.lower() != (title or "").strip().lower():
+            queries.append((ct + " " + _clean_for_search(artist)).strip())
+        for q in queries:
+            if not q:
+                continue
+            try:
+                hits = _lrclib_search(q)
+                api_error = None       # search reached lrclib, so clear the get error
+            except Exception as e:
+                hits = []
+                api_error = api_error or str(e)
+                continue
+            if hits:
+                rec = next((h for h in hits if h.get("syncedLyrics")), None) or hits[0]
+                if rec:
+                    break
 
     # 3) YouTube lyrics-video fallback — scrape lyrics from video descriptions
     #    (YouTube is reachable even when lrclib is slow, and covers tracks that
