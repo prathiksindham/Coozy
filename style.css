@@ -1670,28 +1670,28 @@ body.is-full .voice-toast {
 #yt-host iframe { position: absolute; top: 0; left: 0; width: 220px; height: 130px; border: 0; }
 
 @media (max-width: 600px) {
-  :root { --hero: 270px; --side-rotate: 16deg; }
+  :root { --hero: calc(100vw - 48px); --side-rotate: 16deg; }
   .player { height: 460px; }
   .player__arrow { width: 40px; height: 40px; }
 
-  /* Top button stack: move to top-left and stack horizontally */
-  .add-btn { right: auto; left: 20px; top: 20px; }
-  .fx-picker { right: auto; left: 76px; top: 20px; }
-  .pl-picker { right: auto; left: 132px; top: 20px; }
-  .frame-picker { right: auto; left: 188px; top: 20px; }
-  .room-btn { right: auto; left: 244px; top: 20px; }
+  /* Top button stack: move to top-right and stack horizontally */
+  .add-btn { left: auto; right: 20px; top: 20px; }
+  .fx-picker { left: auto; right: 76px; top: 20px; }
+  .pl-picker { left: auto; right: 132px; top: 20px; }
+  .frame-picker { left: auto; right: 188px; top: 20px; }
+  .room-btn { left: auto; right: 244px; top: 20px; }
 
-  /* Dropdowns for top stack: fly downwards instead of left */
+  /* Dropdowns for top stack: fly downwards */
   .fx-menu, .pl-menu {
-    right: auto;
-    left: 0;
+    left: auto;
+    right: 0;
     top: calc(100% + 8px);
-    transform-origin: top left;
+    transform-origin: top right;
   }
 
-  /* Bottom button stack: stay bottom-right but stack horizontally */
-  .mic-btn { bottom: 24px; right: 20px; }
-  .view-toggle { bottom: 24px; right: 76px; }
+  /* Bottom buttons: view-toggle at bottom-left, mic-btn at bottom-right */
+  .mic-btn { bottom: 24px; left: auto; right: 20px; }
+  .view-toggle { bottom: 24px; left: 20px; right: auto; }
 }
 
 /* ============================================================
