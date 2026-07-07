@@ -1671,7 +1671,7 @@ body.is-full .voice-toast {
 
 @media (max-width: 600px) {
   :root { --hero: calc(100vw - 48px); --side-rotate: 16deg; }
-  .player { height: 460px; }
+  .player { height: 100dvh; }
   .player__arrow { width: 40px; height: 40px; }
 
   /* Top button stack: move to top-right and stack horizontally */
