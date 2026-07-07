@@ -3308,3 +3308,22 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
     else { key = ""; }
   };
 })();
+
+// ---- Mobile FAB Toggle ----
+(function() {
+  const mobileFab = document.getElementById("mobileFab");
+  if (!mobileFab) return;
+  mobileFab.addEventListener("click", (e) => {
+    e.stopPropagation();
+    document.body.classList.toggle("fab-active");
+  });
+  // Close FAB menu when clicking outside of it and its children
+  document.addEventListener("click", (e) => {
+    if (document.body.classList.contains("fab-active")) {
+      const isFabOrChild = e.target.closest(".mobile-fab, .add-btn, .fx-picker, .pl-picker, .frame-picker, .room-btn, .fx-menu, .pl-menu, #frameMenu");
+      if (!isFabOrChild) {
+        document.body.classList.remove("fab-active");
+      }
+    }
+  });
+})();
