@@ -691,6 +691,20 @@ body.is-full .lyr-next {
 }
 .lyrics-plain[hidden] { display: none; }
 .lyrics-plain::-webkit-scrollbar { display: none; }
+/* Notice shown atop plain (un-timed) lyrics so a non-scrolling track reads as
+   "no synced data" rather than "sync is broken". */
+.lyr-plain-note {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-size: clamp(12px, 1.1vw, 14px);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.42);
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 40ch;
+}
 
 .lyrics-status {
   position: absolute;

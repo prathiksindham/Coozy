@@ -3201,6 +3201,12 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
     setStatus("");
     if (plainEl) {
       plainEl.hidden = false; plainEl.textContent = "";
+      // No timestamps for this track (LRCLIB only had plain text), so the lines
+      // can't scroll with the song — make that clear instead of looking broken.
+      const note = document.createElement("div");
+      note.className = "lyr-plain-note";
+      note.textContent = "Synced lyrics aren’t available for this song — showing the full lyrics.";
+      plainEl.appendChild(note);
       (text || "").split(/\r?\n/).forEach((ln) => {
         const p = document.createElement("div");
         p.textContent = ln || " ";
