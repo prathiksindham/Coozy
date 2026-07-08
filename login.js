@@ -155,6 +155,23 @@
           callback: (resp) => { if (resp && resp.credential) postCredential(resp.credential); },
         });
         gisReady = true;
+        
+        // Render the official Google sign-in button inside our custom button wrapper.
+        if (googleBtn) {
+          googleBtn.innerHTML = "";
+          googleBtn.style.padding = "0";
+          googleBtn.style.border = "none";
+          googleBtn.style.background = "transparent";
+          // We can set it to a div safely in the DOM if we want, or just let it be a button.
+          // Google's script will inject an iframe.
+          window.google.accounts.id.renderButton(googleBtn, {
+            theme: "outline",
+            size: "large",
+            type: "standard",
+            width: googleBtn.offsetWidth || 260
+          });
+        }
+        
       } catch (e) { console.error("[login] GIS init failed", e); }
     };
     if (window.google && window.google.accounts) { boot(); return true; }
@@ -169,20 +186,13 @@
   function startGoogleLogin() {
     if (clientId) {
       if (!gisReady) initGoogle(clientId);
-      if (gisReady && window.google && window.google.accounts) {
-        try {
-          window.google.accounts.id.prompt();
-          note("");
-          return;
-        } catch (e) {}
-      }
-      note("Starting Google sign-in…");
       return;
     }
     note("Google sign-in isn't set up yet — add GOOGLE_CLIENT_ID to persona/.env.");
     console.info("[login] Set GOOGLE_CLIENT_ID in persona/.env (server exposes it via /api/auth/config).");
   }
-  googleBtn && googleBtn.addEventListener("click", startGoogleLogin);
+  // Remove the old manual click listener because renderButton intercepts the click automatically.
+  // We still keep startGoogleLogin for manual triggers if needed, but the button handles itself now.
 
   // --- public API ----------------------------------------------------------
   window.LOGIN = { open: openLogin, close: closeLogin, logout, initGoogle, isSignedIn };
