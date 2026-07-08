@@ -175,7 +175,7 @@
     register(".source-switch", { radius: 21, scale: 8, blur: 3, sat: 1.8, bright: 1.05, spec: 0.4 }); // segmented-control glass track (pill: r = half-height)
     // NB: the .src-thumb selection capsule is intentionally NOT registered — the
     // reference builds it from box-shadow only (no backdrop-filter), behind the icons.
-    register(".mic-btn, .view-toggle, .fx-toggle, .add-btn, .room-btn, .player__arrow",
+    register(".view-toggle, .fx-toggle, .room-btn, .player__arrow",
              { radius: 23, scale: 9, blur: 1, sat: 1.8 });                              // round control tiles (circular: r = half of 46px)
   }
   if (document.readyState !== "loading") init();
