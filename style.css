@@ -839,8 +839,8 @@ body.is-full .stage-bg { opacity: 1; }
 
 .fx-menu {
   position: absolute;
-  top: 0;
-  right: calc(100% + 8px);   /* fly out to the left of the icon */
+  top: calc(100% + 12px);
+  right: 0;   /* fly out to the left of the icon */
   min-width: 156px;
   max-height: 320px;
   overflow-y: auto;
@@ -1124,8 +1124,8 @@ body.is-full .stage-bg { opacity: 1; }
 
 .pl-menu {
   position: absolute;
-  top: 0;
-  right: calc(100% + 8px);   /* fly out to the left of the icon */
+  top: calc(100% + 12px);
+  right: 0;   /* fly out to the left of the icon */
   width: 240px;
   border-radius: 20px;
   background: rgba(24, 26, 32, 0.94);
