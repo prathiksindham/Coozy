@@ -631,7 +631,14 @@
     </div>
   </div>
 
-  <!-- Effect picker (top-left dropdown) -->
+  <!-- Top-left controls container -->
+  <div class="top-left-actions">
+    <!-- Profile Button (hidden until signed in) -->
+    <button class="profile-btn" id="profileBtn" aria-label="Profile" hidden>
+      <img src="" alt="Profile" id="profileAvatar" class="profile-avatar" />
+    </button>
+    
+    <!-- Effect picker (top-left dropdown) -->
   <div class="fx-picker" id="fxPicker" aria-label="Disc effect">
     <button class="fx-toggle" id="fxToggle" aria-haspopup="listbox" aria-expanded="false" aria-label="Effect" title="Effect">
       <svg class="fx-ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
@@ -651,6 +658,7 @@
       <button class="fx-opt" data-fx="thermal" role="option">Thermal Gradient</button>
       <button class="fx-opt" data-fx="pinterest" role="option">Color Flow</button>
     </div>
+  </div>
   </div>
 
   <!-- Playlist selector (top-center) -->
@@ -747,6 +755,43 @@
     </div>
 
     <div class="sheet__results" id="results"></div>
+  </aside>
+
+  <!-- Profile sheet (slides in from the left/right depending on MVP layout) -->
+  <aside class="sheet" id="profileSheet" aria-hidden="true" aria-label="Profile">
+    <div class="sheet__head">
+      <h2 class="sheet__title">Profile</h2>
+      <button class="sheet__close" id="profileClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="profile-content">
+      <div class="profile-header">
+        <img src="" alt="" id="profileSheetAvatar" class="profile-sheet-avatar" />
+        <div class="profile-info">
+          <div class="profile-name" id="profileSheetName">User</div>
+          <div class="profile-email" id="profileSheetEmail">email@example.com</div>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <div class="stat-box"><span id="statPlaylists">0</span> Playlists</div>
+        <div class="stat-box"><span id="statSongs">0</span> Songs</div>
+      </div>
+      <div class="profile-preferences">
+        <h3>What's your vibe?</h3>
+        <p class="pref-desc">Pick a few genres to personalize your experience.</p>
+        <div class="vibe-tags" id="vibeTags">
+          <button class="vibe-tag" data-vibe="Pop">Pop</button>
+          <button class="vibe-tag" data-vibe="Hip Hop">Hip Hop</button>
+          <button class="vibe-tag" data-vibe="R&B">R&B</button>
+          <button class="vibe-tag" data-vibe="Indie">Indie</button>
+          <button class="vibe-tag" data-vibe="Electronic">Electronic</button>
+          <button class="vibe-tag" data-vibe="Chill">Chill</button>
+          <button class="vibe-tag" data-vibe="Rock">Rock</button>
+        </div>
+      </div>
+      <button class="profile-logout" id="profileLogoutBtn">Sign Out</button>
+    </div>
   </aside>
 
   <!-- "Add to playlist" chooser (opens from a search result's + ) -->

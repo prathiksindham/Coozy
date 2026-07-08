@@ -3345,3 +3345,80 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
   
   document.body.appendChild(leftActions);
 })();
+
+/* ---------- Profile Sheet MVP ---------- */
+const profileBtn = document.getElementById("profileBtn");
+const profileSheet = document.getElementById("profileSheet");
+const profileClose = document.getElementById("profileClose");
+const profileLogoutBtn = document.getElementById("profileLogoutBtn");
+const vibeTagsContainer = document.getElementById("vibeTags");
+
+function openProfile() {
+  if (!profileSheet) return;
+  const overlay = document.getElementById("sheetOverlay");
+  if (overlay) overlay.hidden = false;
+  
+  profileSheet.hidden = false;
+  profileSheet.setAttribute("aria-hidden", "false");
+  requestAnimationFrame(() => {
+    if (overlay) overlay.classList.add("is-open");
+    profileSheet.classList.add("is-open");
+  });
+  
+  // Populate data
+  try {
+    const user = JSON.parse(localStorage.getItem("coozy_user") || "{}");
+    document.getElementById("profileSheetName").textContent = user.name || "User";
+    document.getElementById("profileSheetEmail").textContent = user.email || "";
+    document.getElementById("profileSheetAvatar").src = user.picture || "";
+  } catch (e) {}
+
+  // Populate stats
+  let totalPlaylists = playlists.length;
+  let totalSongs = 0;
+  playlists.forEach(pl => totalSongs += (pl.discs ? pl.discs.length : 0));
+  document.getElementById("statPlaylists").textContent = totalPlaylists;
+  document.getElementById("statSongs").textContent = totalSongs;
+  
+  // Restore vibe
+  const savedVibe = localStorage.getItem("coozy_vibe") || "";
+  if (vibeTagsContainer) {
+    Array.from(vibeTagsContainer.children).forEach(tag => {
+      tag.classList.toggle("is-active", tag.dataset.vibe === savedVibe);
+    });
+  }
+}
+
+function closeProfile() {
+  if (!profileSheet) return;
+  const overlay = document.getElementById("sheetOverlay");
+  if (overlay) overlay.classList.remove("is-open");
+  
+  profileSheet.classList.remove("is-open");
+  profileSheet.setAttribute("aria-hidden", "true");
+  setTimeout(() => { 
+    if (!profileSheet.classList.contains("is-open")) profileSheet.hidden = true; 
+    if (overlay && !overlay.classList.contains("is-open")) overlay.hidden = true;
+  }, 350);
+}
+
+const overlayEl = document.getElementById("sheetOverlay");
+if (overlayEl) overlayEl.addEventListener("click", closeProfile);
+
+if (profileBtn) profileBtn.addEventListener("click", openProfile);
+if (profileClose) profileClose.addEventListener("click", closeProfile);
+if (profileLogoutBtn) {
+  profileLogoutBtn.addEventListener("click", () => {
+    if (window.LOGIN && window.LOGIN.logout) window.LOGIN.logout();
+  });
+}
+if (vibeTagsContainer) {
+  vibeTagsContainer.addEventListener("click", (e) => {
+    const btn = e.target.closest(".vibe-tag");
+    if (!btn) return;
+    const vibe = btn.dataset.vibe;
+    localStorage.setItem("coozy_vibe", vibe);
+    Array.from(vibeTagsContainer.children).forEach(tag => tag.classList.remove("is-active"));
+    btn.classList.add("is-active");
+  });
+}

@@ -115,7 +115,22 @@
   // Reflect auth onto <body> so CSS can gate signed-in-only affordances (e.g.
   // "add to playlist"): body.is-signed-in is present only when signed in.
   function reflectAuth(on) {
-    try { document.body.classList.toggle("is-signed-in", !!on); } catch (e) {}
+    document.body.classList.toggle("is-signed-in", !!on);
+    
+    // Update profile button
+    const profileBtn = document.getElementById("profileBtn");
+    const profileAvatar = document.getElementById("profileAvatar");
+    if (profileBtn && profileAvatar) {
+      if (on) {
+        profileBtn.hidden = false;
+        try {
+          const user = JSON.parse(localStorage.getItem(USER_LS) || "{}");
+          profileAvatar.src = user.picture || "";
+        } catch(e) {}
+      } else {
+        profileBtn.hidden = true;
+      }
+    }
   }
   function onSignedIn(user) {
     try { localStorage.setItem(USER_LS, JSON.stringify(user || {})); } catch (e) {}
