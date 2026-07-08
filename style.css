@@ -2007,7 +2007,7 @@ body.is-full .voice-toast {
 .fx-toggle, .fx-menu,
 .mic-btn,
 .voice-toast,
-.pl-toggle, .pl-menu,
+.pl-menu,
 .pladd,
 .add-btn,
 .sheet,
@@ -2050,7 +2050,7 @@ body.is-full .voice-toast {
    generating refraction maps when Reduce Transparency is on (see liquidglass.js).
    ========================================================================== */
 @media (prefers-reduced-transparency: reduce) {
-  .player__arrow, .fx-toggle, .fx-menu, .mic-btn, .voice-toast, .pl-toggle,
+  .player__arrow, .fx-toggle, .fx-menu, .mic-btn, .voice-toast,
   .pl-menu, .pladd, .add-btn, .sheet, .view-toggle, .source-switch,
   .room-btn, .room-panel, .convo__chip {
     background: rgba(22, 24, 30, 0.97) !important;
@@ -2066,7 +2066,7 @@ body.is-full .voice-toast {
   .np__thumb-filter { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; filter: none !important; }
 }
 @media (prefers-contrast: more) {
-  .player__arrow, .fx-toggle, .fx-menu, .mic-btn, .voice-toast, .pl-toggle,
+  .player__arrow, .fx-toggle, .fx-menu, .mic-btn, .voice-toast,
   .pl-menu, .pladd, .add-btn, .sheet, .view-toggle, .source-switch,
   .room-btn, .room-panel, .convo__chip {
     background: rgba(18, 20, 26, 0.95) !important;
