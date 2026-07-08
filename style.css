@@ -989,19 +989,49 @@ body.is-full .stage-bg { opacity: 1; }
 }
 .voice-toast.is-show { 
   opacity: 1; 
-  /* Locked exactly to notch width */
+  /* Exact M3 Air notch width, tight bottom corners matching hardware */
   width: 198px; 
   max-width: 198px;
   height: 36px;
   padding: 5px 12px;
-  border-radius: 0 0 24px 24px;
+  border-radius: 0 0 10px 10px;  /* M3 notch has tight ~10px bottom radius */
+  box-shadow: none;
+  transition: box-shadow 0.4s ease;
+}
+
+/* Listening: teal-grey glowing border */
+.voice-toast.is-show.listening {
+  box-shadow:
+    0 0 0 1.5px rgba(41, 115, 115, 0.9),
+    0 0 12px 4px rgba(41, 115, 115, 0.55),
+    0 0 28px 8px rgba(41, 115, 115, 0.25);
+  animation: chip-glow-listening 2s ease-in-out infinite;
+}
+
+/* Sable (AI talking): teal-green glowing border */
+.voice-toast.is-show.sable {
+  box-shadow:
+    0 0 0 1.5px rgba(39, 229, 145, 0.9),
+    0 0 12px 4px rgba(39, 229, 145, 0.55),
+    0 0 28px 8px rgba(39, 229, 145, 0.25);
+  animation: chip-glow-sable 2s ease-in-out infinite;
+}
+
+@keyframes chip-glow-listening {
+  0%, 100% { box-shadow: 0 0 0 1.5px rgba(41,115,115,0.9), 0 0 12px 4px rgba(41,115,115,0.45), 0 0 24px 6px rgba(41,115,115,0.2); }
+  50%       { box-shadow: 0 0 0 1.5px rgba(41,115,115,1.0), 0 0 18px 8px rgba(41,115,115,0.65), 0 0 36px 12px rgba(41,115,115,0.3); }
+}
+
+@keyframes chip-glow-sable {
+  0%, 100% { box-shadow: 0 0 0 1.5px rgba(39,229,145,0.9), 0 0 12px 4px rgba(39,229,145,0.45), 0 0 24px 6px rgba(39,229,145,0.2); }
+  50%       { box-shadow: 0 0 0 1.5px rgba(39,229,145,1.0), 0 0 18px 8px rgba(39,229,145,0.65), 0 0 36px 12px rgba(39,229,145,0.3); }
 }
 
 @keyframes chip-fluid {
-  0%   { border-radius: 0 0 24px 24px / 0 0 24px 24px; }
-  33%  { border-radius: 0 0 32px 18px / 0 0 28px 20px; }
-  66%  { border-radius: 0 0 18px 32px / 0 0 20px 28px; }
-  100% { border-radius: 0 0 24px 24px / 0 0 24px 24px; }
+  0%   { border-radius: 0 0 10px 10px / 0 0 10px 10px; }
+  33%  { border-radius: 0 0 14px 8px / 0 0 12px 9px; }
+  66%  { border-radius: 0 0 8px 14px / 0 0 9px 12px; }
+  100% { border-radius: 0 0 10px 10px / 0 0 10px 10px; }
 }
 
 .voice-toast[hidden] { display: none; }

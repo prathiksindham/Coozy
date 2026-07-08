@@ -2252,6 +2252,7 @@ function startListening() {
     micBtn && micBtn.setAttribute("aria-pressed", "true");
     duckAudio(true);                         // mic just turns teal (static) — no ripple animation
     playEarcon("start");                     // audible "I'm listening" cue (Alexa/Google style)
+    if (voiceToast) voiceToast.classList.add("listening"); // teal glow on chip
     youPillStream(); riveListen(true);       // show the blob + morph pill (words appear as you speak)
     convoClearSable();
     noSpeechT = setTimeout(finish, NOSPEECH_MS);   // nothing said at all -> close quietly
