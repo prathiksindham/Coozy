@@ -291,12 +291,35 @@ body:not(.is-full) .nowplaying {
 /* Lyrics mode: the now-playing card becomes the Figma 134:477 bar
    (mini cassette on the left, song info + transport on the right). */
 .player.show-lyrics .nowplaying {
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 26px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 16px 20px;
   width: min(calc(var(--hero) + 172px), 94vw, 630px);
 }
-.player.show-lyrics .np__cover { display: block; }
+.player.show-lyrics .np__cover {
+  display: block;
+  grid-column: 1;
+  grid-row: 1;
+  width: 60px; height: 60px; /* Make it match figma size roughly */
+}
+.player.show-lyrics .np__body {
+  display: contents; /* Flattens np__body so its children become grid items */
+}
+.player.show-lyrics .np__head {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+}
+.player.show-lyrics .np__progress {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin-top: 10px;
+}
+.player.show-lyrics .np__controls {
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
 
 .np__meta { flex: 1; min-width: 0; }
 .np__head {
