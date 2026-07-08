@@ -3327,3 +3327,49 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
     }
   });
 })();
+
+
+// ---- Mobile FAB Clones & Layout ----
+(function() {
+  const mobileFab = document.getElementById('mobileFab');
+  if (!mobileFab) return;
+  
+  // Create mobile actions container
+  const leftActions = document.createElement('div');
+  leftActions.className = 'mobile-left-actions';
+  
+  const addBtn = document.getElementById('addBtn');
+  if (addBtn) leftActions.appendChild(addBtn); // addBtn is only used on mobile basically anyway, but moving it is fine
+  
+  const fabWrapper = document.createElement('div');
+  fabWrapper.className = 'liquid-fab-wrapper glass';
+  
+  const liquidIcons = document.createElement('div');
+  liquidIcons.className = 'liquid-icons';
+  
+  // Create clones for the 3 menu items
+  const frameClone = document.createElement('button');
+  frameClone.className = 'fab-child frame-picker';
+  frameClone.innerHTML = '<svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>';
+  frameClone.onclick = () => document.getElementById('frameToggle')?.click();
+  
+  const plClone = document.createElement('button');
+  plClone.className = 'fab-child pl-picker';
+  plClone.innerHTML = '<svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>';
+  plClone.onclick = () => document.getElementById('plToggle')?.click();
+  
+  const fxClone = document.createElement('button');
+  fxClone.className = 'fab-child effect-picker';
+  fxClone.innerHTML = '<svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M7.5 7.5l9 9M16.5 7.5l-9 9"/></svg>';
+  fxClone.onclick = () => document.getElementById('fxToggle')?.click();
+  
+  liquidIcons.appendChild(fxClone);
+  liquidIcons.appendChild(plClone);
+  liquidIcons.appendChild(frameClone);
+  
+  liquidIcons.appendChild(mobileFab);
+  fabWrapper.appendChild(liquidIcons);
+  leftActions.appendChild(fabWrapper);
+  
+  document.body.appendChild(leftActions);
+})();

@@ -298,6 +298,7 @@ body:not(.is-full) .nowplaying {
 }
 .player.show-lyrics .np__cover { display: block; }
 
+.np__meta { flex: 1; min-width: 0; }
 .np__head {
   display: flex;
   align-items: flex-start;
@@ -321,9 +322,9 @@ body:not(.is-full) .nowplaying {
    condenses back out of the smoke. --dir (+1/-1) makes the smoke follow the CD swipe
    direction. The letter itself is transparent and painted by a 0-blur text-shadow
    (the reference's trick) so blurring the shadow turns the glyph into a soft cloud. */
-.np__title, .np__artist, .np__meta { overflow: visible; }
+.np__title, .np__artist, .np__meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .np__title, .np__artist { position: relative; }
-.smoke-line { display: inline-block; white-space: pre; }
+.smoke-line { display: inline; white-space: pre; }
 .smoke-line.is-out { position: absolute; left: 0; top: 0; pointer-events: none; }
 .smoke-line span {
   display: inline-block;
@@ -1683,44 +1684,89 @@ body.is-full .voice-toast {
   /* Bottom right mic-btn */
   .mic-btn { bottom: 24px; left: auto; right: 20px; }
 
-  /* Mobile FAB Toggle */
-  .mobile-fab {
-    display: grid;
+  /* Mobile Actions Layout */
+  .mobile-left-actions {
     position: fixed;
-    bottom: 24px;
     left: 20px;
+    bottom: 24px;
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
     z-index: 100;
-    width: 46px;
-    height: 46px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 50%;
-    background: rgba(20, 22, 28, 0.8);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    cursor: pointer;
-    color: #fff;
   }
-  .mobile-fab svg { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+
+  .add-btn {
+    position: relative;
+    top: auto; bottom: auto; left: auto; right: auto;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    /* Let liquidglass.js handle its look */
+  }
+
+  .liquid-fab-wrapper {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    margin-bottom: -1px;
+    pointer-events: none;
+  }
+
+  /* Glass backdrop layers for Cubiq Liquid Glass Engine */
+  .liquid-fab-wrapper.glass::before {
+    content: ''; position: absolute; inset: -30px; pointer-events: none;
+    backdrop-filter: url(#pack-upper);
+  }
+  .liquid-fab-wrapper.glass::after {
+    content: ''; position: absolute; inset: -30px; pointer-events: none;
+    backdrop-filter: url(#liquid-glass-new) url(#fresnel) drop-shadow(0 0 10px rgba(0,0,0,0.3));
+  }
+
+  .liquid-icons {
+    position: absolute;
+    inset: -250px -30px -30px -30px; /* Big enough to contain animating buttons */
+    filter: url(#round) url(#pack-lower);
+    mix-blend-mode: plus-lighter;
+    pointer-events: none;
+  }
+
+  /* Shared fab-child styles (white for gooey merge math) */
+  .fab-child, .mobile-fab {
+    position: absolute;
+    bottom: 30px; left: 50%;
+    margin-left: -23px;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: #fff;
+    color: #000;
+    border: none;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1.4);
+  }
+
+  .fab-child svg, .mobile-fab svg {
+    width: 24px; height: 24px;
+    stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none;
+    position: relative; z-index: 2;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1.4);
+  }
+
   body.fab-active .mobile-fab svg { transform: rotate(45deg); }
 
-  /* FAB Menu Items: stacked above the FAB but hidden and scaled down */
-  .add-btn, .fx-picker, .pl-picker, .frame-picker, .room-btn {
-    top: auto;
-    bottom: 24px;
-    left: 20px;
-    right: auto;
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(0) scale(0.5);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-  }
+  /* Expanded state positions */
+  body.fab-active .frame-picker { transform: translateY(-64px) scale(0.9); }
+  body.fab-active .pl-picker { transform: translateY(-120px) scale(0.9); }
+  body.fab-active .effect-picker { transform: translateY(-176px) scale(0.9); }
+
+  /* Room btn is not in the FAB menu anymore */
+  .room-btn { display: none !important; }
   
-  /* When expanded, translate them up to form a column */
-  body.fab-active .add-btn { transform: translateY(-60px) scale(1); opacity: 1; pointer-events: auto; }
-  body.fab-active .fx-picker { transform: translateY(-116px) scale(1); opacity: 1; pointer-events: auto; }
-  body.fab-active .pl-picker { transform: translateY(-172px) scale(1); opacity: 1; pointer-events: auto; }
-  body.fab-active .frame-picker { transform: translateY(-228px) scale(1); opacity: 1; pointer-events: auto; }
-  body.fab-active .room-btn { transform: translateY(-284px) scale(1); opacity: 1; pointer-events: auto; }
+  /* Lyrics Mobile Styling */
+  .lyr-cur { font-size: 20px; line-height: 1.5; text-align: center; }
+  .lyr-next { font-size: 16px; line-height: 1.5; text-align: center; }
+  .lyrics-plain { font-size: 18px; line-height: 1.5; text-align: center; }
 
   /* Dropdowns for FAB menu items: fly rightwards */
   .fx-menu, .pl-menu {
