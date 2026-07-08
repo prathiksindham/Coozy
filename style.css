@@ -879,9 +879,7 @@ body.is-full .stage-bg { opacity: 1; }
 
 /* ---------------- Voice control mic (bottom-right, aligned with the full-view button) ---------------- */
 .mic-btn {
-  position: fixed;
-  bottom: 24px;
-  right: 20px;
+  /* Handled by .mobile-left-actions now */
   z-index: 122;
   width: 46px;
   height: 46px;
@@ -1242,7 +1240,7 @@ body.is-full .stage-bg { opacity: 1; }
 /* ---------------- Add-song button (top-right) ---------------- */
 .add-btn {
   position: fixed;
-  top: 20px;
+  bottom: 24px;
   right: 20px;
   z-index: 95;
   width: 46px;
@@ -1675,12 +1673,11 @@ body.is-full .voice-toast {
     z-index: 100;
   }
 
-  .add-btn {
+  .mic-btn {
     position: relative;
     top: auto; bottom: auto; left: auto; right: auto;
     width: 46px; height: 46px;
     border-radius: 50%;
-    /* Let liquidglass.js handle its look */
   }
 
   .liquid-fab-wrapper {
@@ -1744,8 +1741,8 @@ body.is-full .voice-toast {
   /* Hide view-toggle on mobile */
   .view-toggle { display: none !important; }
 
-  /* Bottom right mic-btn */
-  .mic-btn { bottom: 24px; left: auto; right: 20px; }
+  /* Bottom right add-btn */
+  .add-btn { bottom: 24px; left: auto; right: 20px; }
 
   /* Room btn is not in the FAB menu anymore */
   .room-btn { display: none !important; }

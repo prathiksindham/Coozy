@@ -3358,8 +3358,8 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
   // Plus button on the left, Search button on the right
   leftActions.appendChild(fabWrapper);
   
-  const addBtn = document.getElementById('addBtn');
-  if (addBtn) leftActions.appendChild(addBtn);
+  const micBtn = document.getElementById('micBtn');
+  if (micBtn) leftActions.appendChild(micBtn);
   
   document.body.appendChild(leftActions);
 })();
