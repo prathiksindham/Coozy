@@ -651,6 +651,9 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         # ---- auth / per-user playlists ----
+        if self.path.startswith("/api/admin/feedback.csv"):
+            self._export_feedback_csv()
+            return
         if self.path.startswith("/api/auth/config"):
             self._json(200, json.dumps({"clientId": os.environ.get("GOOGLE_CLIENT_ID", "")}).encode())
             return
@@ -855,6 +858,9 @@ class Handler(SimpleHTTPRequestHandler):
         if self.path.startswith("/api/persona"):
             self._persona()
             return
+        if self.path.startswith("/api/feedback"):
+            self._post_feedback()
+            return
         if self.path.startswith("/api/auth/google"):
             self._auth_google()
             return
@@ -917,6 +923,51 @@ class Handler(SimpleHTTPRequestHandler):
             self._json(400, b'{"ok":false,"error":"bad payload"}'); return
         auth.save_playlists(uid, req["playlists"])
         self._json(200, b'{"ok":true}')
+
+    def _post_feedback(self):
+        uid = self._uid()
+        if not uid:
+            self._json(401, b'{"error":"Not logged in"}')
+            return
+        
+        user = auth.get_user(uid)
+        user_email = user.get("email") if user else "unknown"
+        
+        req = self._read_json()
+        message = req.get("message", "").strip()
+        if not message:
+            self._json(400, b'{"error":"Message is empty"}')
+            return
+        
+        try:
+            auth.insert_feedback(user_email, message)
+            self._json(200, b'{"ok":true}')
+        except Exception as e:
+            self._json(500, json.dumps({"error": str(e)}).encode())
+
+    def _export_feedback_csv(self):
+        import csv
+        import io
+        import time
+        try:
+            records = auth.get_all_feedback()
+            output = io.StringIO()
+            writer = csv.writer(output)
+            writer.writerow(["Email", "Message", "Timestamp"])
+            for rec in records:
+                ts_str = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(rec[2]))
+                writer.writerow([rec[0], rec[1], ts_str])
+            
+            csv_data = output.getvalue().encode('utf-8')
+            
+            self.send_response(200)
+            self.send_header("Content-Type", "text/csv")
+            self.send_header("Content-Disposition", 'attachment; filename="feedback.csv"')
+            self.send_header("Content-Length", str(len(csv_data)))
+            self.end_headers()
+            self.wfile.write(csv_data)
+        except Exception as e:
+            self._json(500, json.dumps({"error": str(e)}).encode())
 
     def _persona(self):
         try:
@@ -1029,3 +1080,4 @@ if __name__ == "__main__":
     threading.Thread(target=_prewarm_tts, daemon=True).start()
     threading.Thread(target=_ensure_vosk_model, daemon=True).start()
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
+

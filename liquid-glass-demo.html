@@ -1,20 +1,225 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CD Player Carousel</title>
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <!-- Login drawer typefaces (Figma design). Fallback to the app's stack if offline. -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600&family=Hanken+Grotesk:wght@400;500&family=Spline+Sans:wght@400&display=swap" />
-  <link rel="stylesheet" href="style.css?v=123" />
+  <meta charset="UTF-8">
+  <title>Liquid Glass</title>
+  <style>
+@import url("https://fonts.googleapis.com/css2?family=Manrope");
 
-  <div aria-hidden="true" style="position:absolute; width:0; height:0; overflow:hidden;">
-<!-- Utilities -->
+:root {
+  font-size: clamp(1.5rem, 2vw + 1rem, 2.5rem);
+}
+
+@keyframes bg-move {
+  from { background-position-y: bottom; }
+  to   { background-position-y: 70%; }
+}
+
+body {
+  background: rgb(2, 6, 23);
+  height: 100svh;
+  display: grid;
+  place-items: center;    
+  place-content: center;
+  
+  color:white;
+  font-family: "Manrope", sans-serif;
+  
+  background-image: url('https://i.ibb.co/ZpTYhmfq/tulip.jpg'); 
+/*   background-image: url('https://images.unsplash.com/photo-1745986143057-e611033e37e8');  */
+
+  background-size: cover;
+  background-position: bottom;
+
+  animation: bg-move 20s ease-in-out infinite alternate;
+  
+  overflow: hidden;
+  
+  grid-template-area: "stack";
+  
+  > * {
+    grid-area: stack;
+  }
+  
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+h1 {
+  text-decoration: none;
+  font-weight: normal;
+  outline: none;
+  text-align: center;
+  font-size: 1.7em;
+  line-height: 6em;
+  min-width: 1em;
+}
+
+nav{
+  width: 100%;
+  position: relative;    
+  font-size: 1.5rem;
+  padding: .5em;
+  
+  resize: horizontal;
+  overflow: hidden;  
+  
+/*   body:not(:hover) & {
+    transition: .5s;
+    width: 100% !important;
+  } */
+  
+  &.glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    
+    /* 
+    | Converts background to 7bit colors 
+    | (128 levels for each channel)
+    */
+    backdrop-filter: url(#pack-upper);
+  }
+  
+  &.glass::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    
+    /* variations <3 */
+    backdrop-filter: url(#glass);
+    backdrop-filter: url(#liquid-glass);
+    backdrop-filter: url(#liquid-glass-new);
+    backdrop-filter: 
+      url(#liquid-glass-new) 
+      url(#fresnel)
+      drop-shadow(0 0 10px #0003)
+    ;
+  }
+
+  &::-webkit-resizer {
+      background: #fff;
+      border-radius: 99em;
+      box-shadow: 0 0 20px 1px #fff;
+      outline: 20px solid transparent;
+      pointer-events: all;
+  }
+}
+
+.icons {
+  display:flex;
+  flex-wrap: wrap;
+  justify-content:space-around;  
+  
+  filter: url(#round);  
+  filter: url(#pack-lower);  
+  filter: url(#round) url(#pack-lower);  
+  
+  /* correct channel addition blend mode */
+  mix-blend-mode: plus-lighter;
+}
+
+.icon {
+  pointer-events: all;
+  width: 3em;
+  aspect-ratio: 1;  
+
+  transition: 1s;
+  border-radius: 0em;
+  border-radius: 1em;
+  border-radius: 1.5em;
+
+  background: #fff;
+  
+  /* color: black; */
+  
+  padding: .85em;
+  
+  /* to make it kinda morph*/
+  margin: -0.2em;
+  
+  cursor: pointer;
+  overflow: visible;
+  
+  transition: 
+    scale 1s linear(0, 0.038 1.6%, 0.154 3.4%, 1.026 12.6%, 1.166 15.2%, 1.234 18%, 1.221 21.6%, 1.005 31.2%, 0.944 37%, 1.013 56%, 1)
+/*     , border-radius .3s ease-in-out */
+  ;
+  
+  will-change: transform;
+  
+  nav:has(&:active) &:hover {
+    transition-timing-function: ease-out;
+    transition-duration: 130ms;
+    scale: .75;
+  }
+}
+
+body > svg{
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+  </style>
+</head>
+<body>
+  <!--  
+  | HTML + CSS Only Liquid Glass 
+  | ..that's actually liquid..
+  -->
+
+  <h1 contenteditable spellcheck="false">Made by cubiq.</h1>
+  <nav class="glass">
+    <div class="icons">
+      <svg class="icon">
+        <use href="#home"></use>
+      </svg>
+      <svg class="icon">
+        <use href="#store"></use>
+      </svg>
+      <svg class="icon">
+        <use href="#camera"></use>
+      </svg>
+      <svg class="icon">
+        <use href="#search"></use>
+      </svg>
+    </div>
+  </nav>
+
+  <!-- ✴️ lucide icons <3 -->
+  <svg>
+    <symbol id="search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search">
+      <circle cx="11" cy="11" r="8"></circle>
+      <path d="m21 21-4.3-4.3"></path>
+    </symbol>
+
+    <symbol id="camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-camera">
+      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+      <circle cx="12" cy="13" r="3"></circle>
+    </symbol>
+
+    <symbol id="home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-home">
+      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+      <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </symbol>
+
+    <symbol id="store" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-store">
+      <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"></path>
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+      <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"></path>
+      <path d="M2 7h20"></path>
+      <path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"></path>
+    </symbol>
+  </svg>
+
+  <!-- Utilities -->
   <svg color-interpolation-filters="sRGB">
-    <filter color-interpolation-filters="sRGB" id="round">
+    <filter id="round">
       <feGaussianBlur in="SourceGraphic" stdDeviation="10"></feGaussianBlur>
       <feComponentTransfer result="threshold">
         <feFuncA type="gamma" amplitude="80" exponent="10" offset="-2"></feFuncA>
@@ -29,7 +234,7 @@
   -->
   <svg width="0" height="0" color-interpolation-filters="sRGB">
     <!-- Pack Lower Channel -->
-    <filter color-interpolation-filters="sRGB" id="pack-lower">
+    <filter id="pack-lower">
       <feColorMatrix type="matrix" id="pack-lower-matrix" values="
                 0.00392156862745098 0 0 0 0
                 0 0.00392156862745098 0 0 0
@@ -39,7 +244,7 @@
     </filter>
 
     <!-- Pack Upper Channel -->
-    <filter color-interpolation-filters="sRGB" id="pack-upper">
+    <filter id="pack-upper">
       <feColorMatrix type="matrix" id="pack-upper-quantize" result="quantized" values="
                 0.4980392156862745 0 0 0 0
                 0 0.4980392156862745 0 0 0
@@ -56,7 +261,7 @@
     </filter>
 
     <!-- Unpack Lower Channel -->
-    <filter color-interpolation-filters="sRGB" id="unpack-lower">
+    <filter id="unpack-lower">
       <feComponentTransfer>
         <feFuncR type="discrete" id="unpack-lower-r" tableValues="0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000"></feFuncR>
         <feFuncG type="discrete" id="unpack-lower-g" tableValues="0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000 0.000 1.000"></feFuncG>
@@ -65,7 +270,7 @@
     </filter>
 
     <!-- Unpack Upper Channel -->
-    <filter color-interpolation-filters="sRGB" id="unpack-upper">
+    <filter id="unpack-upper">
         <feComponentTransfer>
           <feFuncR type="discrete" id="unpack-upper-r" tableValues="0.000 0.008 0.016 0.024 0.031 0.039 0.047 0.055 0.063 0.071 0.079 0.087 0.094 0.102 0.110 0.118 0.126 0.134 0.142 0.150 0.157 0.165 0.173 0.181 0.189 0.197 0.205 0.213 0.220 0.228 0.236 0.244 0.252 0.260 0.268 0.276 0.283 0.291 0.299 0.307 0.315 0.323 0.331 0.339 0.346 0.354 0.362 0.370 0.378 0.386 0.394 0.402 0.409 0.417 0.425 0.433 0.441 0.449 0.457 0.465 0.472 0.480 0.488 0.496 0.504 0.512 0.520 0.528 0.535 0.543 0.551 0.559 0.567 0.575 0.583 0.591 0.598 0.606 0.614 0.622 0.630 0.638 0.646 0.654 0.661 0.669 0.677 0.685 0.693 0.701 0.709 0.717 0.724 0.732 0.740 0.748 0.756 0.764 0.772 0.780 0.787 0.795 0.803 0.811 0.819 0.827 0.835 0.843 0.850 0.858 0.866 0.874 0.882 0.890 0.898 0.906 0.913 0.921 0.929 0.937 0.945 0.953 0.961 0.969 0.976 0.984 0.992 1.000"></feFuncR>
           <feFuncG type="discrete" id="unpack-upper-g" tableValues="0.000 0.008 0.016 0.024 0.031 0.039 0.047 0.055 0.063 0.071 0.079 0.087 0.094 0.102 0.110 0.118 0.126 0.134 0.142 0.150 0.157 0.165 0.173 0.181 0.189 0.197 0.205 0.213 0.220 0.228 0.236 0.244 0.252 0.260 0.268 0.276 0.283 0.291 0.299 0.307 0.315 0.323 0.331 0.339 0.346 0.354 0.362 0.370 0.378 0.386 0.394 0.402 0.409 0.417 0.425 0.433 0.441 0.449 0.457 0.465 0.472 0.480 0.488 0.496 0.504 0.512 0.520 0.528 0.535 0.543 0.551 0.559 0.567 0.575 0.583 0.591 0.598 0.606 0.614 0.622 0.630 0.638 0.646 0.654 0.661 0.669 0.677 0.685 0.693 0.701 0.709 0.717 0.724 0.732 0.740 0.748 0.756 0.764 0.772 0.780 0.787 0.795 0.803 0.811 0.819 0.827 0.835 0.843 0.850 0.858 0.866 0.874 0.882 0.890 0.898 0.906 0.913 0.921 0.929 0.937 0.945 0.953 0.961 0.969 0.976 0.984 0.992 1.000"></feFuncG>
@@ -78,7 +283,7 @@
   | 🫧 GLASS
   -->
   <svg width="0" height="0" color-interpolation-filters="sRGB">
-    <filter color-interpolation-filters="sRGB" id="glass">
+    <filter id="glass">
       <feComponentTransfer result="SourceBackground" in="SourceGraphic">
         <feFuncR type="discrete" tableValues="0.000 0.008 0.016 0.024 0.031 0.039 0.047 0.055 0.063 0.071 0.079 0.087 0.094 0.102 0.110 0.118 0.126 0.134 0.142 0.150 0.157 0.165 0.173 0.181 0.189 0.197 0.205 0.213 0.220 0.228 0.236 0.244 0.252 0.260 0.268 0.276 0.283 0.291 0.299 0.307 0.315 0.323 0.331 0.339 0.346 0.354 0.362 0.370 0.378 0.386 0.394 0.402 0.409 0.417 0.425 0.433 0.441 0.449 0.457 0.465 0.472 0.480 0.488 0.496 0.504 0.512 0.520 0.528 0.535 0.543 0.551 0.559 0.567 0.575 0.583 0.591 0.598 0.606 0.614 0.622 0.630 0.638 0.646 0.654 0.661 0.669 0.677 0.685 0.693 0.701 0.709 0.717 0.724 0.732 0.740 0.748 0.756 0.764 0.772 0.780 0.787 0.795 0.803 0.811 0.819 0.827 0.835 0.843 0.850 0.858 0.866 0.874 0.882 0.890 0.898 0.906 0.913 0.921 0.929 0.937 0.945 0.953 0.961 0.969 0.976 0.984 0.992 1.000"></feFuncR>
         <feFuncG type="discrete" tableValues="0.000 0.008 0.016 0.024 0.031 0.039 0.047 0.055 0.063 0.071 0.079 0.087 0.094 0.102 0.110 0.118 0.126 0.134 0.142 0.150 0.157 0.165 0.173 0.181 0.189 0.197 0.205 0.213 0.220 0.228 0.236 0.244 0.252 0.260 0.268 0.276 0.283 0.291 0.299 0.307 0.315 0.323 0.331 0.339 0.346 0.354 0.362 0.370 0.378 0.386 0.394 0.402 0.409 0.417 0.425 0.433 0.441 0.449 0.457 0.465 0.472 0.480 0.488 0.496 0.504 0.512 0.520 0.528 0.535 0.543 0.551 0.559 0.567 0.575 0.583 0.591 0.598 0.606 0.614 0.622 0.630 0.638 0.646 0.654 0.661 0.669 0.677 0.685 0.693 0.701 0.709 0.717 0.724 0.732 0.740 0.748 0.756 0.764 0.772 0.780 0.787 0.795 0.803 0.811 0.819 0.827 0.835 0.843 0.850 0.858 0.866 0.874 0.882 0.890 0.898 0.906 0.913 0.921 0.929 0.937 0.945 0.953 0.961 0.969 0.976 0.984 0.992 1.000"></feFuncG>
@@ -114,7 +319,7 @@
 
     <!-- 🫧🫧🫧🫧🫧🫧 -->
 
-    <filter color-interpolation-filters="sRGB" id="liquid-glass" x="-20%" y="-20%" width="140%" height="140%">
+    <filter id="liquid-glass" x="-20%" y="-20%" width="140%" height="140%">
       <!-- #region Unpacking Sources -->
 
       <!-- Unpack Upper channel - Background  (XXXX XXX0) -->
@@ -244,7 +449,7 @@
       <!-- <feComposite in2="SourceBackground"/> -->
     </filter>
 
-    <filter color-interpolation-filters="sRGB"
+    <filter
       id="liquid-glass-new"
       x="-20%"
       y="-20%"
@@ -462,7 +667,7 @@
     </filter>
     
     <!-- Fresnel-ish -->
-    <filter color-interpolation-filters="sRGB" id="fresnel">
+    <filter id="fresnel">
       <feMorphology
         in="SourceMask"
         result="stroke-width"
@@ -494,382 +699,5 @@
     </filter>
 
   </svg>
-
-  </div>
-</head>
-<body>
-  <!-- Apple-style Liquid Glass: refraction filter + exact Figma vector clip shape -->
-  <svg class="lg-defs" width="0" height="0" aria-hidden="true" focusable="false">
-    <defs>
-      <filter color-interpolation-filters="sRGB" id="liquid-glass" x="-35%" y="-35%" width="170%" height="170%" color-interpolation-filters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency="0.008 0.014" numOctaves="2" seed="42" stitchTiles="stitch" result="noise"/>
-        <feGaussianBlur in="noise" stdDeviation="1.6" result="soft"/>
-        <feDisplacementMap in="SourceGraphic" in2="soft" scale="9" xChannelSelector="R" yChannelSelector="G"/>
-      </filter>
-      <!-- Maxuiux "mini liquid lens": a radial normal map (blue centre -> white rim)
-           displaces the backdrop outward at the edges, magnifying the track/fill the
-           runtime thumb rides over. Used only while the thumb is being dragged. -->
-      <filter color-interpolation-filters="sRGB" id="mini-liquid-lens" x="-50%" y="-50%" width="200%" height="200%">
-        <feImage x="0" y="0" result="normalMap" xlink:href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><radialGradient id='invmap' cx='50%25' cy='50%25' r='75%25'><stop offset='0%25' stop-color='rgb(128,128,255)'/><stop offset='90%25' stop-color='rgb(255,255,255)'/></radialGradient><rect width='100%25' height='100%25' fill='url(%23invmap)'/></svg>" />
-        <feDisplacementMap in="SourceGraphic" in2="normalMap" scale="-90" xChannelSelector="R" yChannelSelector="G" result="displaced" />
-        <feMerge><feMergeNode in="displaced" /></feMerge>
-      </filter>
-      <!-- exact Figma vector path (12:37), normalised + mirrored (tab on top-right) -->
-      <clipPath id="glassClip" clipPathUnits="objectBoundingBox">
-        <path d="M0.932065 0 L0.990148 0 C0.995589 0 1 0.004182 1 0.009346 L1 0.990654 C1 0.995817 0.995589 1 0.990148 1 L0.009852 1 C0.004409 1 0 0.995817 0 0.990654 L0 0.328779 C0 0.323618 0.004409 0.319433 0.009852 0.319433 L0.912361 0.319433 C0.917803 0.319433 0.922213 0.315249 0.922213 0.310087 L0.922213 0.009346 C0.922213 0.004182 0.926624 0 0.932065 0 Z"/>
-      </clipPath>
-    </defs>
-  </svg>
-
-  <section class="player" id="player" aria-roledescription="carousel" aria-label="CD player">
-
-    <!-- Fixed jewel-case frame (stays centered) -->
-    <div class="player__frame" aria-hidden="true">
-      <img class="player__case" id="playerCase" src="assets_case.png" alt="" draggable="false" />
-    </div>
-
-    <!-- Moving discs (slide through the frame like changing the song) -->
-    <div class="player__track" id="track">
-      <!-- .disc elements injected by JS -->
-    </div>
-
-    <!-- Frame overlay: parts of the case that sit ABOVE the disc (e.g. a tonearm) -->
-    <img class="player__overlay" id="playerOverlay" alt="" draggable="false" aria-hidden="true" hidden />
-
-    <!-- Apple-Music-style synced lyrics — appears IN PLACE of the CD frame when toggled.
-         Upward-scrolling flow: the incoming line rises from the bottom to the centre
-         with the gooey "morphing text" effect; the outgoing line rises up and fades away. -->
-    <div class="lyrics-stage" id="lyricsStage" aria-hidden="true" hidden>
-      <div class="lyrics-flow" id="lyricsFlow">
-        <div class="lyr-cur" id="lyrCur">
-          <span class="lyr-morph"><span class="m1"></span><span class="m2"></span></span>
-        </div>
-        <div class="lyr-next" id="lyrNext"></div>
-      </div>
-      <div class="lyrics-plain" id="lyricsPlain" hidden></div>
-      <div class="lyrics-status" id="lyricsStatus"></div>
-    </div>
-
-    <!-- Now-playing info, below the cassette frame. In lyrics mode this becomes the
-         Figma 134:477 bar: a mini cassette (jewel case + album-art disc) beside the info. -->
-    <div class="nowplaying" id="nowplaying">
-      <div class="np__cover" id="npCover" aria-hidden="true">
-        <img class="np__cover-case" src="assets_case.png" alt="" draggable="false" />
-        <span class="np__cover-disc">
-          <img class="np__cover-art" id="npCoverArt" alt="" draggable="false" />
-          <span class="np__cover-hub" aria-hidden="true"></span>
-        </span>
-      </div>
-
-      <div class="np__body">
-        <div class="np__head">
-          <div class="np__meta">
-            <div class="np__title" id="trackTitle">Good News</div>
-            <div class="np__artist" id="trackArtist">Mac Miller</div>
-          </div>
-          <label class="container" id="heartBtn" aria-label="Like">
-            <input type="checkbox" />
-            <svg class="checkmark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-          </label>
-        </div>
-
-        <div class="np__progress">
-          <span class="np__time" id="timeCur">00:00</span>
-          <div class="np__bar"><span class="np__fill"><span class="np__thumb" aria-hidden="true"><span class="np__thumb-filter"></span><span class="np__thumb-overlay"></span><span class="np__thumb-specular"></span></span></span></div>
-          <span class="np__time" id="timeDur">00:00</span>
-        </div>
-
-        <div class="np__controls">
-          <div class="pl-picker" id="plPicker" aria-label="Playlist">
-    <button class="pl-toggle" id="plToggle" aria-haspopup="dialog" aria-expanded="false" aria-label="Playlist" title="Playlist">
-      <svg class="pl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="18" x2="12" y2="18"></line><polygon points="16 16 22 19 16 22 16 16"></polygon></svg>
-      <span class="pl-name" id="plName" hidden>Liked Songs</span>
-    </button>
-  </div>
-          <button class="np__ctrl" id="ctrlPrev" aria-label="Previous">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14M20 5L9 12l11 7z"/></svg>
-          </button>
-          <button class="np__ctrl np__ctrl--play" id="ctrlPlay" aria-label="Play/Pause" aria-pressed="false">
-            <svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>
-            <svg class="ic-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h4v16H7zM13 4h4v16h-4z"/></svg>
-          </button>
-          <button class="np__ctrl" id="ctrlNext" aria-label="Next">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 5v14M4 5l11 7L4 19z"/></svg>
-          </button>
-          <button class="np__lyrics" id="lyricsBtn" aria-label="Lyrics" aria-pressed="false" title="Lyrics">
-            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M11.73,16.5c0,2.67-1.84,4.5-4.52,4.5H5.85c-0.65,0-1.12-0.62-0.87-1.22c0.88-2.11,1.52-4.13,1.52-5.78V10.5 c0-1.93,1.57-3.5,3.5-3.5h1.73V16.5z M20.73,16.5c0,2.67-1.84,4.5-4.52,4.5h-1.36c-0.65,0-1.12-0.62-0.87-1.22 c0.88-2.11,1.52-4.13,1.52-5.78V10.5c0-1.93,1.57-3.5,3.5-3.5h1.73V16.5z"/></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-
-  </section>
-
-  <!-- Immersive backdrop (active album art) shown in full view -->
-  <div class="stage-bg" id="stageBg" aria-hidden="true"></div>
-
-  <!-- Source switch (YouTube <-> Spotify) lives on the `stream-site` branch;
-       hidden from the main branch until Spotify/YouTube verification ships. -->
-
-  <!-- Connect Spotify modal -->
-  <div class="pladd-overlay" id="spOverlay" hidden></div>
-  <div class="pladd sp-modal" id="spModal" role="dialog" aria-label="Connect Spotify" hidden>
-    <div class="pladd__head">
-      <span>Connect Spotify</span>
-      <button class="pladd__close" id="spClose" aria-label="Close">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
-    </div>
-    <div class="sp-modal__body">
-      <p class="sp-hint">Spotify <b>Premium</b> is required for full playback. Create an app at
-        <b>developer.spotify.com/dashboard</b>, paste its <b>Client ID</b> below, and add this exact
-        <b>Redirect URI</b> to the app’s settings:</p>
-      <code class="sp-redirect" id="spRedirect"></code>
-      <input id="spClientId" class="sp-input" placeholder="Spotify Client ID" autocomplete="off" spellcheck="false" />
-      <button id="spConnect" class="sp-connect">Connect Spotify</button>
-      <p class="sp-status" id="spStatus"></p>
-    </div>
-  </div>
-
-  <!-- Top-left controls container -->
-  <div class="top-left-actions">
-    <!-- Profile Button (hidden until signed in) -->
-    <button class="profile-btn" id="profileBtn" aria-label="Profile" hidden>
-      <img src="" alt="Profile" id="profileAvatar" class="profile-avatar" />
-    </button>
-    
-    <!-- Effect picker (top-left dropdown) -->
-  <div class="fx-picker" id="fxPicker" aria-label="Disc effect">
-    <button class="fx-toggle" id="fxToggle" aria-haspopup="listbox" aria-expanded="false" aria-label="Effect" title="Effect">
-      <svg class="fx-ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-      <span class="fx-toggle-val" id="fxToggleVal" hidden>Dither</span>
-    </button>
-    <div class="fx-menu" id="fxMenu" role="listbox" hidden>
-      <button class="fx-opt" data-fx="none" role="option">None</button>
-      <button class="fx-opt" data-fx="ascii" role="option">ASCII</button>
-      <button class="fx-opt is-active" data-fx="dither" role="option">Dither</button>
-      <button class="fx-opt" data-fx="acid" role="option">Acid</button>
-      <button class="fx-opt" data-fx="halftone" role="option">Halftone</button>
-      <button class="fx-opt" data-fx="posterize" role="option">Posterize</button>
-      <button class="fx-opt" data-fx="grayscale" role="option">Grayscale</button>
-      <button class="fx-opt" data-fx="sepia" role="option">Sepia</button>
-      <button class="fx-opt" data-fx="invert" role="option">Invert</button>
-      <button class="fx-opt" data-fx="vhs" role="option">VHS</button>
-      <button class="fx-opt" data-fx="thermal" role="option">Thermal Gradient</button>
-      <button class="fx-opt" data-fx="pinterest" role="option">Color Flow</button>
-    </div>
-  </div>
-  </div>
-
-  <!-- Playlist selector (top-center) -->
-  
-
-  <!-- Frame switcher (below the playlist button) -->
-  <div class="frame-picker" id="framePicker" aria-label="Cassette frame">
-    <button class="fx-toggle" id="frameToggle" aria-haspopup="listbox" aria-expanded="false" aria-label="Frame" title="Frame">
-      <svg class="fx-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="12" r="3.4"/></svg>
-    </button>
-    <div class="fx-menu" id="frameMenu" role="listbox" hidden></div>
-  </div>
-
-  <!-- Voice control (below the frame button). The white ripple shows inside while listening. -->
-  <button class="mic-btn" id="micBtn" aria-label="Voice control" title="Voice control" aria-pressed="false">
-    <svg class="mic-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
-    <!-- Listening ripple (Uiverse.io by Smit-Prajapati) — rings only -->
-    <div class="loader" aria-hidden="true">
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-    </div>
-  </button>
-
-  <!-- Voice pill (blob + streaming text). No mic icon; fixed frame, text streams to fit. -->
-  <div class="voice-toast" id="voiceToast" role="status" aria-live="polite" hidden>
-    <span class="vt-blob" aria-hidden="true"><canvas id="micRive"></canvas></span>
-    <span class="vt-ic" id="voiceIcon" aria-hidden="true"></span>
-    <span class="vt-text" id="voiceText">Listening…</span>
-  </div>
-
-  <!-- Gooey threshold filter for the morphing-text caption (Sable speaking) -->
-  <svg id="vtFilters" width="0" height="0" aria-hidden="true" style="position:absolute" color-interpolation-filters="sRGB">
-    <defs>
-      <filter color-interpolation-filters="sRGB" id="vtThreshold" color-interpolation-filters="sRGB">
-        <feColorMatrix in="SourceGraphic" type="matrix"
-          values="1 0 0 0 0
-                  0 1 0 0 0
-                  0 0 1 0 0
-                  0 0 0 255 -140" />
-      </filter>
-
-    </defs>
-  </svg>
-
-  <!-- Playlist drawer: the songs in the current playlist (like the search drawer) -->
-  <div class="sheet-overlay" id="plSheetOverlay" hidden></div>
-  <aside class="sheet" id="plSheet" aria-hidden="true" aria-label="Playlist songs">
-    <div class="sheet__head">
-      <h2 class="sheet__title" id="plSheetTitle">Liked Songs</h2>
-      <div class="sheet__headbtns">
-        <button class="sheet__close" id="plSheetDelete" aria-label="Delete this playlist" title="Delete this playlist" hidden>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>
-        </button>
-        <button class="sheet__close" id="plSheetClose" aria-label="Close">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="pl-tabs" id="plTabs"></div>
-    <div class="sheet__results" id="plSongs"></div>
-  </aside>
-
-  <!-- Mobile FAB Toggle -->
-  <button class="mobile-fab" id="mobileFab" aria-label="Menu" hidden>
-    <!-- Plus icon for FAB -->
-    <svg viewBox="0 0 24 24" aria-hidden="true" class="ic-plus"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-  </button>
-
-  <!-- Add-song button (top-right) -->
-  <button class="add-btn" id="addBtn" aria-label="Search a song">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-  </button>
-
-  <!-- Add-song sheet (slides in from the right) -->
-  <div class="sheet-overlay" id="sheetOverlay" hidden></div>
-  <aside class="sheet" id="addSheet" aria-hidden="true" aria-label="Add a song">
-    <div class="sheet__head">
-      <h2 class="sheet__title">Add a song</h2>
-      <button class="sheet__close" id="sheetClose" aria-label="Close">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
-    </div>
-
-    <div class="sheet__search">
-      <svg class="sheet__search-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      <input id="searchInput" type="text" autocomplete="off" spellcheck="false"
-             placeholder="Search YouTube or paste a link…" />
-      <button class="sheet__clear" id="searchClear" aria-label="Clear" hidden>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
-    </div>
-
-    <div class="sheet__results" id="results"></div>
-  </aside>
-
-  <!-- Profile sheet (slides in from the left/right depending on MVP layout) -->
-  <aside class="sheet-left" id="profileSheet" aria-hidden="true" aria-label="Profile">
-    <div class="sheet__head">
-      <h2 class="sheet__title">Profile</h2>
-      <button class="sheet__close" id="profileClose" aria-label="Close">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
-    </div>
-    <div class="profile-content">
-      <div class="profile-header">
-        <img src="" alt="" id="profileSheetAvatar" class="profile-sheet-avatar" />
-        <div class="profile-info">
-          <div class="profile-name" id="profileSheetName">User</div>
-          <div class="profile-email" id="profileSheetEmail">email@example.com</div>
-        </div>
-      </div>
-      
-      <div class="profile-feedback">
-        <h3>We value your feedback</h3>
-        <p class="pref-desc">What features do you want to add? What do you dislike about the app?</p>
-        <textarea id="feedbackText" class="feedback-input" placeholder="Type your feedback here..." rows="4"></textarea>
-        <button id="submitFeedbackBtn" class="feedback-submit">Submit Feedback</button>
-        <p id="feedbackStatus" class="feedback-status" hidden></p>
-      </div>
-
-      <button class="profile-logout" id="profileLogoutBtn">Sign Out</button>
-    </div>
-  </aside>
-
-  <!-- "Add to playlist" chooser (opens from a search result's + ) -->
-  <div class="pladd-overlay" id="plAddOverlay" hidden></div>
-  <div class="pladd" id="plAdd" role="dialog" aria-label="Add to playlist" hidden>
-    <div class="pladd__head">
-      <span>Add to playlist</span>
-      <button class="pladd__close" id="plAddClose" aria-label="Close">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
-    </div>
-    <div class="pladd__new">
-      <input id="plAddNewInput" type="text" autocomplete="off" placeholder="New playlist…" maxlength="40" />
-      <button id="plAddNewBtn" class="pladd__newbtn">＋ Create</button>
-    </div>
-    <div class="pladd__list" id="plAddList"></div>
-  </div>
-
-
-  <!-- Toggle: carousel <-> full-screen now-playing view -->
-  <button class="view-toggle" id="viewToggle" aria-label="Full view" aria-pressed="false">
-    <svg class="ic-expand" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
-    <svg class="ic-collapse" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
-  </button>
-
-  <!-- Local audio engine (works by double-clicking the file; no server needed) -->
-  <audio id="audio" preload="metadata"></audio>
-
-  <!-- YouTube audio player: kept in the DOM (offscreen) so audio plays; no visible badge -->
-  <div id="yt-host" aria-hidden="true">
-    <div id="yt-player"></div>
-  </div>
-
-  <!-- ===== Sign-in drawer (Figma 122:53) — slides in from the left, max 480px ===== -->
-  <div class="login-overlay" id="loginOverlay" hidden></div>
-  <aside class="login-drawer" id="loginDrawer" role="dialog" aria-modal="true" aria-label="Sign in to Music" aria-hidden="true" hidden>
-    <button class="login-drawer__close" id="loginClose" aria-label="Close">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-    </button>
-
-    <div class="login-inner">
-      <!-- Login block -->
-      <div class="login-card">
-        <div class="login-logo" aria-hidden="true">
-          <img class="login-logo__glow" src="assets/login/vinyl-a.png" alt="" />
-          <img class="login-logo__disc" src="assets/login/vinyl-b.png" alt="" />
-        </div>
-        <h1 class="login-title">Welcome to Music</h1>
-        <p class="login-sub">Log in or register to save your playlists.</p>
-
-        <button class="login-google" id="loginGoogleBtn" type="button">
-          <img class="login-google__g" src="assets/login/google-g.svg" alt="" aria-hidden="true" />
-          <span>Continue with Google</span>
-        </button>
-
-        <div class="login-rule" aria-hidden="true"></div>
-
-        <p class="login-fine">Sign-in is handled securely by Google.<br />Privacy · Terms</p>
-      </div>
-
-      <!-- Quote + listeners -->
-      <div class="login-foot">
-        <blockquote class="login-quote">
-          <p class="login-quote__text">“A thought is love's currency”</p>
-          <p class="login-quote__by">Mac Miller, Objects in the Mirror</p>
-        </blockquote>
-        <div class="login-avatars" aria-hidden="true">
-          <span class="login-av login-av--ring">
-            <img class="login-av__ring" src="assets/login/ring.svg?v=123" alt="" />
-            <img class="login-av__img" src="assets/login/av-0.png" alt="" />
-          </span>
-          <span class="login-av"><img class="login-av__img" src="assets/login/av-1.png" alt="" /></span>
-          <span class="login-av"><img class="login-av__img" src="assets/login/av-2.png" alt="" /></span>
-          <span class="login-av"><img class="login-av__img" src="assets/login/av-3.png" alt="" /></span>
-          <span class="login-av"><img class="login-av__img" src="assets/login/av-4.png" alt="" /></span>
-        </div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Rive web runtime (for the mic listening animation) -->
-  <script src="https://unpkg.com/@rive-app/canvas@2"></script>
-  <script src="script.js?v=123"></script>
-  <script src="spotify.js?v=123"></script>
-  <script src="wake.js?v=123"></script>
-  <script src="liquidglass.js?v=123"></script>
-  <script src="login.js?v=123"></script>
 </body>
 </html>

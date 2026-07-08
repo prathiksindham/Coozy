@@ -3373,20 +3373,11 @@ function openProfile() {
     document.getElementById("profileSheetAvatar").src = user.picture || "";
   } catch (e) {}
 
-  // Populate stats
-  let totalPlaylists = playlists.length;
-  let totalSongs = 0;
-  playlists.forEach(pl => totalSongs += (pl.discs ? pl.discs.length : 0));
-  document.getElementById("statPlaylists").textContent = totalPlaylists;
-  document.getElementById("statSongs").textContent = totalSongs;
-  
-  // Restore vibe
-  const savedVibe = localStorage.getItem("coozy_vibe") || "";
-  if (vibeTagsContainer) {
-    Array.from(vibeTagsContainer.children).forEach(tag => {
-      tag.classList.toggle("is-active", tag.dataset.vibe === savedVibe);
-    });
-  }
+  // Reset feedback form
+  const fbText = document.getElementById("feedbackText");
+  const fbStatus = document.getElementById("feedbackStatus");
+  if (fbText) fbText.value = "";
+  if (fbStatus) fbStatus.hidden = true;
 }
 
 function closeProfile() {
@@ -3412,13 +3403,43 @@ if (profileLogoutBtn) {
     if (window.LOGIN && window.LOGIN.logout) window.LOGIN.logout();
   });
 }
-if (vibeTagsContainer) {
-  vibeTagsContainer.addEventListener("click", (e) => {
-    const btn = e.target.closest(".vibe-tag");
-    if (!btn) return;
-    const vibe = btn.dataset.vibe;
-    localStorage.setItem("coozy_vibe", vibe);
-    Array.from(vibeTagsContainer.children).forEach(tag => tag.classList.remove("is-active"));
-    btn.classList.add("is-active");
+
+const submitFeedbackBtn = document.getElementById("submitFeedbackBtn");
+if (submitFeedbackBtn) {
+  submitFeedbackBtn.addEventListener("click", () => {
+    const fbText = document.getElementById("feedbackText");
+    const fbStatus = document.getElementById("feedbackStatus");
+    if (!fbText || !fbText.value.trim()) return;
+    
+    submitFeedbackBtn.disabled = true;
+    submitFeedbackBtn.textContent = "Sending...";
+    
+    fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: fbText.value.trim() }),
+      credentials: "include"
+    })
+    .then(r => r.json())
+    .then(data => {
+      fbStatus.hidden = false;
+      if (data.ok) {
+        fbStatus.textContent = "Thank you! Your feedback has been sent.";
+        fbStatus.style.color = "#4ade80";
+        fbText.value = "";
+      } else {
+        fbStatus.textContent = data.error || "Failed to send feedback.";
+        fbStatus.style.color = "#ff6b6b";
+      }
+    })
+    .catch(() => {
+      fbStatus.hidden = false;
+      fbStatus.textContent = "Error connecting to server.";
+      fbStatus.style.color = "#ff6b6b";
+    })
+    .finally(() => {
+      submitFeedbackBtn.disabled = false;
+      submitFeedbackBtn.textContent = "Submit Feedback";
+    });
   });
 }

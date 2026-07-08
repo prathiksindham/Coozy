@@ -45,6 +45,10 @@ def init_db():
         c.execute("""CREATE TABLE IF NOT EXISTS playlists(
             user_id INTEGER PRIMARY KEY,
             json TEXT, updated REAL)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS feedback(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_email TEXT, message TEXT,
+            created REAL)""")
 
 
 def upsert_user(sub, email, name, picture):
@@ -197,3 +201,12 @@ def clear_cookie(secure):
 
 
 init_db()
+
+def insert_feedback(user_email, message):
+    with _db() as c:
+        c.execute("INSERT INTO feedback (user_email, message, created) VALUES (?, ?, ?)",
+                  (user_email, message, time.time()))
+
+def get_all_feedback():
+    with _db() as c:
+        return c.execute("SELECT user_email, message, created FROM feedback ORDER BY created DESC").fetchall()
