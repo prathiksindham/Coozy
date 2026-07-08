@@ -2231,7 +2231,8 @@ body.is-full .player__arrow { opacity: 0; pointer-events: none; }
 .login-foot {
   display: flex; flex-direction: column; align-items: center; gap: 22px;
 }
-.login-quote { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.login-quote {
+  min-height: 80px; margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .login-quote__text {
   margin: 0; width: 295px; max-width: 100%; text-align: center;
   font-family: "Hanken Grotesk", "Inter", system-ui, sans-serif;
@@ -2244,25 +2245,30 @@ body.is-full .player__arrow { opacity: 0; pointer-events: none; }
   font-weight: 400; font-size: 15px; line-height: 22px; letter-spacing: 0.3px;
   color: rgba(82, 82, 82, 0.7);
 }
-.login-avatars { display: flex; align-items: center; gap: 10.5px; }
+.login-avatars { display: flex; align-items: center; justify-content: center; gap: 12px; }
 .login-av {
-  position: relative; width: 42px; height: 42px; border-radius: 50%;
-  overflow: hidden; flex: none;
+  position: relative; width: 44px; height: 44px; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; padding: 3px;
+  filter: grayscale(100%) opacity(0.5);
+  transition: filter 0.4s ease;
+}
+.login-av.is-active {
+  filter: grayscale(0%) opacity(1);
 }
 .login-av__img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
-.login-av--ring {
-  width: 50px; height: 50px; overflow: visible;
-  display: grid; place-items: center;
+
+.login-av__svg-ring {
+  position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;
+  transform: rotate(-90deg);
 }
-.login-av--ring .login-av__img {
-  position: relative; z-index: 1;      /* photo on TOP of the ring backing */
-  width: 42px; height: 42px;
+.login-av__svg-ring circle {
+  transition: none; /* reset is instant */
 }
-.login-av__ring {
-  position: absolute; inset: 0; z-index: 0; width: 50px; height: 50px;
-  transform: rotate(-90deg); animation: login-ring 6s linear infinite;
+.login-av.is-active .login-av__svg-ring circle {
+  transition: stroke-dashoffset 6s linear;
+  stroke-dashoffset: 0;
 }
-@keyframes login-ring { to { transform: rotate(270deg); } }
 
 @media (prefers-reduced-motion: reduce) {
   .login-logo__glow, .login-av__ring { animation: none; }

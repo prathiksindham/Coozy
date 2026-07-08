@@ -53,14 +53,57 @@
   let currentQuoteIdx = 0;
   const quoteTextEl = document.getElementById("loginQuoteText");
   const quoteByEl = document.getElementById("loginQuoteBy");
-  const quoteImgEl = document.getElementById("loginQuoteImg");
   const avatarsBlock = document.getElementById("loginAvatarsBlock");
 
+  // Build the avatars
+  if (avatarsBlock) {
+    avatarsBlock.innerHTML = "";
+    loginQuotes.forEach((q, idx) => {
+      const span = document.createElement("span");
+      span.className = "login-av" + (idx === 0 ? " is-active" : "");
+      
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("class", "login-av__svg-ring");
+      svg.setAttribute("viewBox", "0 0 50 50");
+      
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("cx", "25");
+      circle.setAttribute("cy", "25");
+      circle.setAttribute("r", "23.5");
+      circle.setAttribute("fill", "none");
+      circle.setAttribute("stroke", "#256060");
+      circle.setAttribute("stroke-width", "3");
+      circle.setAttribute("stroke-linecap", "round");
+      circle.setAttribute("stroke-dasharray", "150");
+      circle.setAttribute("stroke-dashoffset", "150");
+      svg.appendChild(circle);
+
+      const img = document.createElement("img");
+      img.className = "login-av__img";
+      img.src = q.img;
+      img.style.objectFit = "cover";
+
+      span.appendChild(svg);
+      span.appendChild(img);
+      avatarsBlock.appendChild(span);
+    });
+  }
+
   function changeQuote() {
-    if (!quoteTextEl || !quoteImgEl) return;
+    if (!quoteTextEl || !avatarsBlock) return;
+    
+    // Deactivate previous
+    const oldSpan = avatarsBlock.children[currentQuoteIdx];
+    if (oldSpan) oldSpan.classList.remove("is-active");
+
     currentQuoteIdx = (currentQuoteIdx + 1) % loginQuotes.length;
     const q = loginQuotes[currentQuoteIdx];
     
+    // Activate new
+    const newSpan = avatarsBlock.children[currentQuoteIdx];
+    if (newSpan) newSpan.classList.add("is-active");
+
+    // True smoke swap (no jumping)
     if (window.smokeSwap) {
         window.smokeSwap(quoteTextEl, q.text, 1);
         window.smokeSwap(quoteByEl, q.by, 1);
@@ -68,20 +111,12 @@
         quoteTextEl.textContent = q.text;
         quoteByEl.textContent = q.by;
     }
-    
-    // Smooth image fade
-    if (avatarsBlock) {
-        avatarsBlock.style.transition = "opacity 0.4s ease, filter 0.4s ease";
-        avatarsBlock.style.opacity = "0";
-        avatarsBlock.style.filter = "blur(8px)";
-        setTimeout(() => {
-            quoteImgEl.src = q.img;
-            avatarsBlock.style.opacity = "1";
-            avatarsBlock.style.filter = "blur(0)";
-        }, 400);
-    } else {
-        quoteImgEl.src = q.img;
-    }
+  }
+  
+  // Set initial text
+  if (quoteTextEl && quoteByEl) {
+    quoteTextEl.textContent = loginQuotes[0].text;
+    quoteByEl.textContent = loginQuotes[0].by;
   }
   
   setInterval(changeQuote, 6000); // Change every 6 seconds
