@@ -48,6 +48,7 @@ def init_db():
         c.execute("""CREATE TABLE IF NOT EXISTS feedback(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_email TEXT, message TEXT,
+            exported INTEGER DEFAULT 0,
             created REAL)""")
 
 
@@ -210,3 +211,12 @@ def insert_feedback(user_email, message):
 def get_all_feedback():
     with _db() as c:
         return c.execute("SELECT user_email, message, created FROM feedback ORDER BY created DESC").fetchall()
+
+def get_new_feedback():
+    with _db() as c:
+        rows = c.execute("SELECT id, user_email, message, created FROM feedback WHERE exported = 0 ORDER BY created ASC").fetchall()
+        if rows:
+            ids = [r[0] for r in rows]
+            placeholders = ",".join("?" * len(ids))
+            c.execute(f"UPDATE feedback SET exported = 1 WHERE id IN ({placeholders})", ids)
+        return rows

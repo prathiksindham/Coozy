@@ -950,13 +950,25 @@ class Handler(SimpleHTTPRequestHandler):
         import io
         import time
         try:
-            records = auth.get_all_feedback()
+            if "?all=true" in self.path:
+                records = auth.get_all_feedback()
+            else:
+                records = auth.get_new_feedback()
+                
             output = io.StringIO()
             writer = csv.writer(output)
-            writer.writerow(["Email", "Message", "Timestamp"])
+            writer.writerow(["ID", "Email", "Message", "Timestamp"])
             for rec in records:
-                ts_str = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(rec[2]))
-                writer.writerow([rec[0], rec[1], ts_str])
+                # rec might be 3 items (from get_all_feedback) or 4 items (from get_new_feedback)
+                # get_new_feedback: (id, email, message, created)
+                # get_all_feedback: (email, message, created)
+                if len(rec) == 4:
+                    rec_id, email, msg, created = rec
+                else:
+                    rec_id, email, msg, created = "N/A", rec[0], rec[1], rec[2]
+                    
+                ts_str = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(created))
+                writer.writerow([rec_id, email, msg, ts_str])
             
             csv_data = output.getvalue().encode('utf-8')
             
