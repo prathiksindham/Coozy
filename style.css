@@ -1088,24 +1088,24 @@ body.is-full .stage-bg { opacity: 1; }
 
 /* ---------------- Playlist selector (top-right, below the effect icon, icon-only) ---------------- */
 
-.pl-toggle {
-  width: 46px;
-  height: 46px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(20, 22, 28, 0.5);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
-  backdrop-filter: blur(10px) saturate(140%);
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+.pl-picker {
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
 }
-.pl-toggle:hover { background: rgba(40, 44, 54, 0.85); border-color: rgba(255, 255, 255, 0.3); }
+.pl-toggle {
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  padding: 0; border: 0; background: none !important;
+  color: rgba(255, 255, 255, 0.72) !important; cursor: pointer;
+  box-shadow: none !important; backdrop-filter: none !important;
+  transition: transform 140ms ease, color 140ms ease, opacity 140ms ease;
+}
+.pl-toggle:hover { color: #fff !important; }
 .pl-toggle:active { transform: scale(0.92); }
 .pl-ic { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.pl-picker.is-open .pl-toggle { background: rgba(40, 44, 54, 0.85); border-color: rgba(255, 255, 255, 0.32); }
+.pl-picker.is-open .pl-toggle { color: #fff !important; }
 
 .pl-menu {
   position: absolute;

@@ -580,6 +580,12 @@
         </div>
 
         <div class="np__controls">
+          <div class="pl-picker" id="plPicker" aria-label="Playlist">
+    <button class="pl-toggle" id="plToggle" aria-haspopup="dialog" aria-expanded="false" aria-label="Playlist" title="Playlist">
+      <svg class="pl-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h7"/><circle cx="18" cy="16" r="3"/><path d="M21 16V7l-3 1"/></svg>
+      <span class="pl-name" id="plName" hidden>Liked Songs</span>
+    </button>
+  </div>
           <button class="np__ctrl" id="ctrlPrev" aria-label="Previous">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14M20 5L9 12l11 7z"/></svg>
           </button>
@@ -648,12 +654,7 @@
   </div>
 
   <!-- Playlist selector (top-center) -->
-  <div class="pl-picker" id="plPicker" aria-label="Playlist">
-    <button class="pl-toggle" id="plToggle" aria-haspopup="dialog" aria-expanded="false" aria-label="Playlist" title="Playlist">
-      <svg class="pl-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h7"/><circle cx="18" cy="16" r="3"/><path d="M21 16V7l-3 1"/></svg>
-      <span class="pl-name" id="plName" hidden>Liked Songs</span>
-    </button>
-  </div>
+  
 
   <!-- Frame switcher (below the playlist button) -->
   <div class="frame-picker" id="framePicker" aria-label="Cassette frame">

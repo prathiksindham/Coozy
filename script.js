@@ -3349,7 +3349,7 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
   const framePicker = document.getElementById('framePicker');
   
   if (fxPicker) { fxPicker.classList.add('fab-child', 'effect-picker'); liquidIcons.appendChild(fxPicker); }
-  if (plPicker) { plPicker.classList.add('fab-child', 'pl-picker'); liquidIcons.appendChild(plPicker); }
+  // plPicker is now natively in the transport controls
   if (framePicker) { framePicker.classList.add('fab-child', 'frame-picker'); liquidIcons.appendChild(framePicker); }
   
   liquidIcons.appendChild(mobileFab);
