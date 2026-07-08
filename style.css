@@ -981,8 +981,8 @@ body.is-full .stage-bg { opacity: 1; }
 }
 .voice-toast.is-show { 
   opacity: 1; 
-  /* Expanded State (fluid expansion to 288px as requested) */
-  width: 288px; 
+  /* Expanded State */
+  width: min(288px, 92vw); 
   height: 36px;
   padding: 5px 12px;
   border-radius: 0 0 16px 16px;
