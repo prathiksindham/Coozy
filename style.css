@@ -1729,8 +1729,7 @@ body.is-full .voice-toast {
 
   /* Expanded state positions */
   body.fab-active .frame-picker { transform: translateY(-64px) scale(0.9); }
-  body.fab-active .pl-picker { transform: translateY(-120px) scale(0.9); }
-  body.fab-active .effect-picker { transform: translateY(-176px) scale(0.9); }
+  body.fab-active .effect-picker { transform: translateY(-120px) scale(0.9); }
 
   
 @media (max-width: 600px) {
