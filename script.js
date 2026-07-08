@@ -3329,31 +3329,37 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
 })();
 
 
-// ---- Bottom Dock Layout (Apple Music Style) ----
+// ---- Mobile FAB Clones & Layout ----
 (function() {
-  const dockContainer = document.createElement('div');
-  dockContainer.className = 'bottom-dock';
+  const mobileFab = document.getElementById('mobileFab');
+  if (!mobileFab) return;
   
-  const dockPill = document.createElement('div');
-  dockPill.className = 'dock-pill';
+  const leftActions = document.createElement('div');
+  leftActions.className = 'mobile-left-actions';
   
-  // Physically move the original pickers into the Dock
-  const plPicker = document.getElementById('plPicker');
+  const fabWrapper = document.createElement('div');
+  fabWrapper.className = 'liquid-fab-wrapper glass';
+  
+  const liquidIcons = document.createElement('div');
+  liquidIcons.className = 'liquid-icons';
+  
+  // Physically move the original pickers into the FAB
   const fxPicker = document.getElementById('fxPicker');
+  const plPicker = document.getElementById('plPicker');
   const framePicker = document.getElementById('framePicker');
   
-  if (plPicker) { plPicker.classList.add('dock-item'); dockPill.appendChild(plPicker); }
-  if (framePicker) { framePicker.classList.add('dock-item'); dockPill.appendChild(framePicker); }
-  if (fxPicker) { fxPicker.classList.add('dock-item'); dockPill.appendChild(fxPicker); }
+  if (fxPicker) { fxPicker.classList.add('fab-child', 'effect-picker'); liquidIcons.appendChild(fxPicker); }
+  if (plPicker) { plPicker.classList.add('fab-child', 'pl-picker'); liquidIcons.appendChild(plPicker); }
+  if (framePicker) { framePicker.classList.add('fab-child', 'frame-picker'); liquidIcons.appendChild(framePicker); }
   
-  dockContainer.appendChild(dockPill);
+  liquidIcons.appendChild(mobileFab);
+  fabWrapper.appendChild(liquidIcons);
   
-  // Search button on the right
+  // Plus button on the left, Search button on the right
+  leftActions.appendChild(fabWrapper);
+  
   const addBtn = document.getElementById('addBtn');
-  if (addBtn) {
-    addBtn.classList.add('dock-search');
-    dockContainer.appendChild(addBtn);
-  }
+  if (addBtn) leftActions.appendChild(addBtn);
   
-  document.body.appendChild(dockContainer);
+  document.body.appendChild(leftActions);
 })();
