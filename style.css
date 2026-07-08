@@ -1491,7 +1491,7 @@ body:not(.is-signed-in) #heartBtn { display: none !important; }
 .view-toggle {
   position: fixed;
   right: 20px;
-  bottom: 84px;            /* sits above the Agentation toolbar */
+  top: 24px;            /* sits above the Agentation toolbar */
   z-index: 95;
   width: 46px;
   height: 46px;
