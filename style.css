@@ -2448,3 +2448,28 @@ body.is-full .voice-toast {
   text-align: center;
   color: #4ade80;
 }
+
+.sheet-left {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  bottom: 12px;
+  z-index: 100;
+  width: min(390px, 92vw);
+  display: flex;
+  flex-direction: column;
+  border-radius: 26px;
+  background: rgba(22, 24, 30, 0.92);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  transform: translateX(calc(-100% - 24px));
+  transition: transform 0.36s cubic-bezier(0.22, 0.7, 0.3, 1);
+  overflow: hidden;
+}
+.sheet-left.is-open {
+  transform: translateX(0);
+}
