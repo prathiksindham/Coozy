@@ -955,7 +955,7 @@ body.is-full .stage-bg { opacity: 1; }
   
   /* Retracted (Notch) State */
   height: 24px;
-  width: 148px; /* M3 MacBook Air notch width in CSS pixels */
+  width: 144px; /* M3 MacBook Air notch width in CSS pixels */
   box-sizing: border-box;
   padding: 0 12px;
   border-radius: 0 0 16px 16px;
