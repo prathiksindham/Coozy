@@ -47,6 +47,11 @@
       text: "“We temporary making permanent memories”",
       by: "Lil Wayne, Single",
       img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Lil_Wayne_in_2023.jpg/500px-Lil_Wayne_in_2023.jpg"
+    },
+    {
+      text: "“No matter where life takes me, find me with a smile. Pursuit to be happy, only laughing like a child. I never thought life would be this sweet, it got me cheesing from cheek to cheek.”",
+      by: "Mac Miller, Best Day Ever",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Mac_Miller_-_Space_Migration_Tour.jpg/500px-Mac_Miller_-_Space_Migration_Tour.jpg"
     }
   ];
   
@@ -115,8 +120,15 @@
   
   // Set initial text
   if (quoteTextEl && quoteByEl) {
-    quoteTextEl.textContent = loginQuotes[0].text;
-    quoteByEl.textContent = loginQuotes[0].by;
+    quoteTextEl.textContent = "";
+    quoteByEl.textContent = "";
+    if (window.smokeSwap) {
+        window.smokeSwap(quoteTextEl, loginQuotes[0].text, 1);
+        window.smokeSwap(quoteByEl, loginQuotes[0].by, 1);
+    } else {
+        quoteTextEl.textContent = loginQuotes[0].text;
+        quoteByEl.textContent = loginQuotes[0].by;
+    }
   }
   
   setInterval(changeQuote, 6000); // Change every 6 seconds
