@@ -188,14 +188,32 @@ def _cookie_val(cookie_header, name):
 
 def session_cookie(uid, secure):
     val = make_session(uid)
-    attrs = ["sess=" + val, "Path=/", "HttpOnly", "SameSite=Lax", "Max-Age=" + str(SESSION_TTL)]
+    
+    expires_time = time.time() + SESSION_TTL
+    expires_str = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(expires_time))
+    
+    attrs = [
+        "sess=" + val, 
+        "Path=/", 
+        "HttpOnly", 
+        "SameSite=Lax", 
+        "Max-Age=" + str(SESSION_TTL),
+        "Expires=" + expires_str
+    ]
     if secure:
         attrs.append("Secure")
     return "; ".join(attrs)
 
 
 def clear_cookie(secure):
-    attrs = ["sess=", "Path=/", "HttpOnly", "SameSite=Lax", "Max-Age=0"]
+    attrs = [
+        "sess=", 
+        "Path=/", 
+        "HttpOnly", 
+        "SameSite=Lax", 
+        "Max-Age=0",
+        "Expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    ]
     if secure:
         attrs.append("Secure")
     return "; ".join(attrs)
