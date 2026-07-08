@@ -642,7 +642,7 @@ body.is-full .lyrics-stage {
   left: 0; right: 0;
   padding: 0 14px;
   text-align: center;
-  font-family: "Anton", "Inter", system-ui, -apple-system, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.035em;
@@ -656,15 +656,15 @@ body.is-full .lyrics-stage {
   top: 50%;
   transform: translateY(-50%);
   font-size: 24px;                 /* normal (not-full) view — the minimised frame */
-  line-height: 1.08;
+  line-height: 1.4; font-weight: 700;
   text-shadow: 0 0 26px rgba(255, 255, 255, 0.22);
 }
 /* next line — faint hint below the current line */
 .lyr-next {
-  top: calc(50% + 74px);
+  top: calc(50% + 88px);
   transform: translateY(-50%);
   font-size: 20px;
-  line-height: 1.08;
+  line-height: 1.4; font-weight: 700;
   opacity: 0.32;
   filter: blur(0.6px);
   transition: opacity 0.5s ease;
@@ -673,7 +673,7 @@ body.is-full .lyrics-stage {
 body.is-full .lyr-cur  { font-size: clamp(28px, calc(var(--hero) * 0.06), 44px); }
 body.is-full .lyr-next {
   font-size: clamp(22px, calc(var(--hero) * 0.05), 36px);
-  top: calc(50% + var(--hero) * 0.2);
+  top: calc(50% + var(--hero) * 0.25);
 }
 .lyr-next:empty { opacity: 0; }
 
@@ -704,7 +704,7 @@ body.is-full .lyr-next {
   gap: 8px;
   padding: 0 16px;
   overflow-y: auto;
-  font-family: "Anton", "Inter", system-ui, -apple-system, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
   font-size: clamp(19px, 2.1vw, 25px);
   font-weight: 400;
   text-transform: uppercase;
@@ -1769,10 +1769,10 @@ body.is-full .voice-toast {
   /* Room btn is not in the FAB menu anymore */
   .room-btn { display: none !important; }
   
-  /* Lyrics Mobile Styling */
-  .lyr-cur { font-size: 20px; line-height: 1.5; text-align: center; }
-  .lyr-next { font-size: 16px; line-height: 1.5; text-align: center; }
-  .lyrics-plain { font-size: 18px; line-height: 1.5; text-align: center; }
+  /* Lyrics Mobile Styling (Spotify-like sizing/pacing) */
+  .lyr-cur { font-size: 28px; line-height: 1.4; text-align: center; font-weight: 700; }
+  .lyr-next { font-size: 22px; line-height: 1.4; text-align: center; font-weight: 700; }
+  .lyrics-plain { font-size: 24px; line-height: 1.4; text-align: center; font-weight: 700; }
 
   /* Dropdowns for FAB menu items: fly rightwards */
   .fx-menu, .pl-menu {
