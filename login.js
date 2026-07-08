@@ -31,27 +31,27 @@
     {
       text: "“I look in the mirror, I'm closer to the man I saw”",
       by: "Kendrick Lamar, County Building Blues",
-      img: "https://upload.wikimedia.org/wikipedia/commons/3/32/Pulitzer2018-portraits-kendrick-lamar_%28cropped%29.jpg"
+      img: "https://upload.wikimedia.org/wikipedia/commons/1/18/KendrickSZASPurs230725-144_%28cropped%29_desaturated.jpg"
     },
     {
       text: "“We only have a certain amount of time here, make it count”",
       by: "Mac Miller, Inside Outside",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Mac_Miller_-_Space_Migration_Tour.jpg/500px-Mac_Miller_-_Space_Migration_Tour.jpg"
+      img: "https://upload.wikimedia.org/wikipedia/commons/4/49/Mac_Miller_%287%29_%E2%80%93_splash%21_Festival_20_%282017%29_%28cropped%29.jpg"
     },
     {
       text: "“We're all just trying to find our way home”",
       by: "Post Malone, Circles",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Post_Malone_July_2021_%28cropped%29.jpg/500px-Post_Malone_July_2021_%28cropped%29.jpg"
+      img: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Post_Malone_July_2021_%28cropped%29.jpg"
     },
     {
       text: "“We temporary making permanent memories”",
       by: "Lil Wayne, Single",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Lil_Wayne_in_2023.jpg/500px-Lil_Wayne_in_2023.jpg"
+      img: "https://upload.wikimedia.org/wikipedia/commons/1/12/Lil_Wayne_Feb._2020.jpg"
     },
     {
       text: "“No matter where life takes me, find me with a smile. Pursuit to be happy, only laughing like a child. I never thought life would be this sweet, it got me cheesing from cheek to cheek.”",
       by: "Mac Miller, Best Day Ever",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Mac_Miller_-_Space_Migration_Tour.jpg/500px-Mac_Miller_-_Space_Migration_Tour.jpg"
+      img: "https://upload.wikimedia.org/wikipedia/commons/4/49/Mac_Miller_%287%29_%E2%80%93_splash%21_Festival_20_%282017%29_%28cropped%29.jpg"
     }
   ];
   
