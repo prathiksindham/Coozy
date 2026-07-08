@@ -1688,7 +1688,7 @@ body.is-full .voice-toast {
 /* Mobile Actions Layout */
   .mobile-left-actions {
     position: fixed;
-    left: 20px;
+    right: 20px;
     bottom: 24px;
     display: flex;
     flex-direction: column;
