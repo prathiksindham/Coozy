@@ -484,6 +484,9 @@ window.addEventListener("pointermove", (e) => {
 /* Live loop: re-skins the playing cassette every frame (motion + interaction) */
 const FX_S = 300;                       // processing resolution (perf)
 let fxProcLast = performance.now(), fxClockLast = performance.now();
+let lastAppliedEffect = null;
+let lastAppliedArt = null;
+
 function fxLoop(now) {
   requestAnimationFrame(fxLoop);
   const dt = Math.min((now - fxClockLast) / 1000, 0.05); fxClockLast = now;
@@ -493,12 +496,27 @@ function fxLoop(now) {
   fxProcLast = now;
   const disc = discs[index];
   if (!disc) return;
-  if (currentEffect === "none") { disc.classList.remove("has-fx"); return; }
-  const img = artImgCache[DISCS[index].art];
+  if (currentEffect === "none") { 
+    disc.classList.remove("has-fx"); 
+    lastAppliedEffect = "none";
+    return; 
+  }
+  
+  const artUrl = DISCS[index].art;
+  const img = artImgCache[artUrl];
   if (!img || !img.complete || !img.naturalWidth) return;
+  
+  // ENERGY SAVING: Only process the canvas if we are actively scratching (high energy), 
+  // or if the effect/art just changed! This eliminates idle CPU drain.
+  if (fxEnergy < 0.05 && currentEffect === lastAppliedEffect && artUrl === lastAppliedArt) {
+      return;
+  }
+  
   try {
     applyEffect(img, disc.querySelector(".disc__dcanvas"), currentEffect, fxTime, FX_S);
     disc.classList.add("has-fx");
+    lastAppliedEffect = currentEffect;
+    lastAppliedArt = artUrl;
   } catch (e) { /* cross-origin tainted -> plain art */ }
 }
 requestAnimationFrame(fxLoop);
