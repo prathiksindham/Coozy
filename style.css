@@ -347,7 +347,7 @@ body:not(.is-full) .nowplaying {
    (the reference's trick) so blurring the shadow turns the glyph into a soft cloud. */
 .np__title, .np__artist, .np__meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .np__title, .np__artist { position: relative; }
-.smoke-line { display: inline; white-space: pre; }
+.smoke-line { display: inline; white-space: pre-wrap; word-break: break-word; }
 .smoke-line.is-out { position: absolute; left: 0; right: 0; top: 0; pointer-events: none; text-align: inherit; }
 .smoke-line span {
   display: inline-block;
