@@ -857,10 +857,10 @@ body.is-full .stage-bg { opacity: 1; }
 
 .fx-menu {
   position: absolute;
-  left: calc(100% + 12px);
+  right: calc(100% + 12px);
+  left: auto;
   bottom: 0;
   top: auto;
-  right: auto;   /* fly out to the left of the icon */
   min-width: 156px;
   max-height: 320px;
   overflow-y: auto;
@@ -874,7 +874,7 @@ body.is-full .stage-bg { opacity: 1; }
   backdrop-filter: blur(20px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 20px 50px -16px rgba(0, 0, 0, 0.7);
-  transform-origin: top left;
+  transform-origin: bottom right;
   animation: fx-pop 0.16s ease;
 }
 .fx-menu[hidden] { display: none; }      /* respect the hidden attr (chevron closed) */
