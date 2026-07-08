@@ -2837,9 +2837,9 @@ function speakSable(text) {
     const fallback = () => { if (!fell) { fell = true; duckAudio(false); browserSpeak(text); } };
     sablePillStream(text);                                // teal pill; words ready to stream
     _pacedReveal(_streamWords.length);                    // show words even if audio never plays
-    _sableAudio.onplay = () => { window.__sableSpeaking = true; duckAudio(true); streamFollowAudio(_sableAudio); };   // sync to voice if it plays
-    _sableAudio.onended = () => { window.__sableSpeaking = false; duckAudio(false); streamRevealTo(_streamWords.length); _maybeContinueConvo(); };
-    _sableAudio.onerror = () => { window.__sableSpeaking = false; fallback(); };
+    _sableAudio.onplay = () => { window.__sableSpeaking = true; document.body.classList.add('sable-speaking'); duckAudio(true); streamFollowAudio(_sableAudio); };   // sync to voice if it plays
+    _sableAudio.onended = () => { window.__sableSpeaking = false; document.body.classList.remove('sable-speaking'); duckAudio(false); streamRevealTo(_streamWords.length); _maybeContinueConvo(); };
+    _sableAudio.onerror = () => { window.__sableSpeaking = false; document.body.classList.remove('sable-speaking'); fallback(); };
     _sableAudio.src = "/api/tts?text=" + encodeURIComponent(text.slice(0, 1200));
     _sableAudio.play().catch(fallback);
   } catch (e) { browserSpeak(text); }
@@ -2854,13 +2854,13 @@ function browserSpeak(text) {
     if (!_sableVoice) _sableVoice = _pickVoice();
     if (_sableVoice) u.voice = _sableVoice;
     u.rate = 1.03; u.pitch = 1.0;
-    u.onstart = () => { window.__sableSpeaking = true; duckAudio(true); };
+    u.onstart = () => { window.__sableSpeaking = true; document.body.classList.add('sable-speaking'); duckAudio(true); };
     u.onboundary = (e) => {                               // reveal words as the voice speaks them
       const idx = (typeof e.charIndex === "number") ? e.charIndex : 0;
       streamRevealTo(text.slice(0, idx).trim().split(/\s+/).filter(Boolean).length + 1);
     };
-    u.onend = () => { window.__sableSpeaking = false; duckAudio(false); streamRevealTo(_streamWords.length); _maybeContinueConvo(); };
-    u.onerror = () => { window.__sableSpeaking = false; duckAudio(false); };
+    u.onend = () => { window.__sableSpeaking = false; document.body.classList.remove('sable-speaking'); duckAudio(false); streamRevealTo(_streamWords.length); _maybeContinueConvo(); };
+    u.onerror = () => { window.__sableSpeaking = false; document.body.classList.remove('sable-speaking'); duckAudio(false); };
     window.speechSynthesis.speak(u);
   } catch (e) {}
 }
