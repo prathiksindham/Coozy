@@ -2316,18 +2316,23 @@ body.is-full .voice-toast {
   padding: 24px;
   display: flex;
   flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
   gap: 24px;
 }
 
 .profile-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 16px;
+  text-align: center;
 }
 
 .profile-sheet-avatar {
-  width: 64px;
-  height: 64px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   background: rgba(255,255,255,0.1);
   object-fit: cover;
@@ -2337,6 +2342,7 @@ body.is-full .voice-toast {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  align-items: center;
 }
 
 .profile-name {
@@ -2577,20 +2583,6 @@ body.is-full .voice-toast {
   position: relative;
   overflow: hidden;
   background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.01));
-}
-
-.profile-header::before {
-  content: "";
-  position: absolute;
-  top: -50%; left: -50%;
-  width: 200%; height: 200%;
-  background: conic-gradient(transparent, rgba(255, 255, 255, 0.1), transparent 30%);
-  animation: rotate 6s linear infinite;
-  z-index: -1;
-}
-
-@keyframes rotate {
-  100% { transform: rotate(360deg); }
 }
 
 .profile-name {
