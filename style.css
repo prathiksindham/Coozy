@@ -950,19 +950,20 @@ body.is-full .stage-bg { opacity: 1; }
   left: 50%;
   top: 0;
   bottom: auto;
-  transform: translateX(-50%) translateY(-100%);
+  transform: translateX(-50%);
   z-index: 120;
-  height: 48px;
-  width: min(350px, 92vw);
+  
+  /* Retracted (Notch) State */
+  height: 24px;
+  width: 160px;
   box-sizing: border-box;
-  padding: 8px 24px;
-  border-radius: 0 0 24px 24px;
+  padding: 0 16px;
+  border-radius: 0 0 16px 16px;
   background: #000000;
   color: #ffffff;
   border: none;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
-  box-shadow: 0 16px 40px -14px rgba(0, 0, 0, 0.7);
-  color: #fff;
+  box-shadow: none;
+  
   font: 500 13px/16.9px "Inter", system-ui, sans-serif;
   letter-spacing: -0.0762px;
   display: flex;
@@ -970,9 +971,23 @@ body.is-full .stage-bg { opacity: 1; }
   gap: 7px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.34s cubic-bezier(0.22, 1, 0.36, 1), transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  
+  /* Framer-like spring transition */
+  transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2),
+              height 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2),
+              padding 0.5s ease,
+              opacity 0.2s ease,
+              box-shadow 0.3s ease;
 }
-.voice-toast.is-show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.voice-toast.is-show { 
+  opacity: 1; 
+  /* Expanded State (matches MacBook notch max width) */
+  width: 210px; 
+  height: 44px;
+  padding: 8px 16px;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+}
 .voice-toast[hidden] { display: none; }
 .voice-toast { overflow: hidden; }        /* keep all content clipped inside the pill */
 .voice-toast .vt-text {
