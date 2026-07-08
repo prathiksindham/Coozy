@@ -1057,17 +1057,7 @@ window.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft")  { prev(); e.preventDefault(); }
 });
 
-/* ---------- Wheel / trackpad (one CD at a time) ---------- */
-let wheelLock = false;
-player.addEventListener("wheel", (e) => {
-  const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-  if (Math.abs(delta) < 8) return;
-  e.preventDefault();
-  if (wheelLock) return;
-  wheelLock = true;
-  delta > 0 ? next() : prev();
-  setTimeout(() => (wheelLock = false), 320);
-}, { passive: false });
+/* Wheel event disabled by user request */
 
 /* ---------- Pointer drag / swipe ---------- */
 let lastMoveX = 0, lastMoveT = 0;
