@@ -994,8 +994,8 @@ body.is-full .stage-bg { opacity: 1; }
 .voice-toast.is-show { 
   opacity: 1; 
   /* Locked exactly to notch width */
-  width: 144px; 
-  max-width: 144px;
+  width: 288px; 
+  max-width: 288px;
   height: 36px;
   padding: 5px 12px;
   border-radius: 0 0 24px 24px;
