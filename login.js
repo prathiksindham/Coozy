@@ -24,6 +24,69 @@
 
   let clientId = window.__googleClientId || "";
   let gisReady = false;
+
+  
+  // --- Quote Carousel ---
+  const loginQuotes = [
+    {
+      text: "“I look in the mirror, I'm closer to the man I saw”",
+      by: "Kendrick Lamar, County Building Blues",
+      img: "https://upload.wikimedia.org/wikipedia/commons/3/32/Pulitzer2018-portraits-kendrick-lamar_%28cropped%29.jpg"
+    },
+    {
+      text: "“We only have a certain amount of time here, make it count”",
+      by: "Mac Miller, Inside Outside",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Mac_Miller_-_Space_Migration_Tour.jpg/500px-Mac_Miller_-_Space_Migration_Tour.jpg"
+    },
+    {
+      text: "“We're all just trying to find our way home”",
+      by: "Post Malone, Circles",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Post_Malone_July_2021_%28cropped%29.jpg/500px-Post_Malone_July_2021_%28cropped%29.jpg"
+    },
+    {
+      text: "“We temporary making permanent memories”",
+      by: "Lil Wayne, Single",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Lil_Wayne_in_2023.jpg/500px-Lil_Wayne_in_2023.jpg"
+    }
+  ];
+  
+  let currentQuoteIdx = 0;
+  const quoteTextEl = document.getElementById("loginQuoteText");
+  const quoteByEl = document.getElementById("loginQuoteBy");
+  const quoteImgEl = document.getElementById("loginQuoteImg");
+  const avatarsBlock = document.getElementById("loginAvatarsBlock");
+
+  function changeQuote() {
+    if (!quoteTextEl || !quoteImgEl) return;
+    currentQuoteIdx = (currentQuoteIdx + 1) % loginQuotes.length;
+    const q = loginQuotes[currentQuoteIdx];
+    
+    if (window.smokeSwap) {
+        window.smokeSwap(quoteTextEl, q.text, 1);
+        window.smokeSwap(quoteByEl, q.by, 1);
+    } else {
+        quoteTextEl.textContent = q.text;
+        quoteByEl.textContent = q.by;
+    }
+    
+    // Smooth image fade
+    if (avatarsBlock) {
+        avatarsBlock.style.transition = "opacity 0.4s ease, filter 0.4s ease";
+        avatarsBlock.style.opacity = "0";
+        avatarsBlock.style.filter = "blur(8px)";
+        setTimeout(() => {
+            quoteImgEl.src = q.img;
+            avatarsBlock.style.opacity = "1";
+            avatarsBlock.style.filter = "blur(0)";
+        }, 400);
+    } else {
+        quoteImgEl.src = q.img;
+    }
+  }
+  
+  setInterval(changeQuote, 6000); // Change every 6 seconds
+
+
   let signedIn = false;
   let applyingServer = false;   // true while we write server data locally (skip re-push)
   let lastPushed = null, pushTimer = null;

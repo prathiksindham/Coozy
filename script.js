@@ -762,6 +762,7 @@ function _splitSmoke(text, cls, driftDir, staggerDir, step) {
   return line;
 }
 
+window.smokeSwap = _smokeSwap;
 function _smokeSwap(el, text, dir) {
   if (!el) return;
   const prev = el.dataset.text || "";
