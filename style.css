@@ -1713,20 +1713,13 @@ body.is-full .voice-toast {
   }
 
   /* Glass backdrop layers for Cubiq Liquid Glass Engine */
-  .liquid-fab-wrapper.glass::before {
-    content: ''; position: absolute; inset: -30px; pointer-events: none;
-    backdrop-filter: url(#pack-upper);
-  }
-  .liquid-fab-wrapper.glass::after {
-    content: ''; position: absolute; inset: -30px; pointer-events: none;
-    backdrop-filter: url(#liquid-glass-new) url(#fresnel) drop-shadow(0 0 10px rgba(0,0,0,0.3));
-  }
+  
+  
 
   .liquid-icons {
     position: absolute;
     inset: -250px -30px -30px -30px; /* Big enough to contain animating buttons */
-    filter: url(#round) url(#pack-lower);
-    mix-blend-mode: plus-lighter;
+    
     pointer-events: none;
   }
 
@@ -1737,9 +1730,11 @@ body.is-full .voice-toast {
     margin-left: -23px;
     width: 46px; height: 46px;
     border-radius: 50%;
-    background: #fff;
-    color: #000;
-    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(24px) saturate(1.8);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     display: grid;
     place-items: center;
     cursor: pointer;
