@@ -1345,16 +1345,8 @@ function songInAnyPlaylist(key) {
   if (DISCS.some((d) => d.persist && trackId(d) === key)) return true;
   return playlists.some((pl) => (pl.discs || []).some((d) => trackId(d) === key));
 }
-// Sync every visible result's add icon (+ vs heart) with the saved state
+// Search results no longer have add icons, so this is a no-op
 function refreshResultIcons() {
-  resultsEl.querySelectorAll(".result").forEach((row) => {
-    const btn = row.querySelector(".result__add");
-    if (!btn) return;
-    const saved = songInAnyPlaylist(row.dataset.key);
-    btn.classList.toggle("is-saved", saved);
-    btn.innerHTML = saved ? HEART_SVG : PLUS_SVG;
-    btn.title = saved ? "In a playlist — add to another" : "Add to playlist";
-  });
 }
 
 // The unified track id of the song currently playing (or null if nothing is playing)
@@ -1392,9 +1384,6 @@ function renderResults(items) {
           <svg class="result__playic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>
           <span class="loading-wave" aria-hidden="true"><div class="loading-bar"></div><div class="loading-bar"></div><div class="loading-bar"></div><div class="loading-bar"></div></span>
         </button>
-        <button class="result__btn result__add${saved ? " is-saved" : ""}" aria-label="Add to playlist" title="${saved ? "In a playlist — add to another" : "Add to playlist"}">
-          ${saved ? HEART_SVG : PLUS_SVG}
-        </button>
       </div>`;
     const preview = async () => {
       // Spotify results already carry a real square album cover; only YouTube needs a lookup.
@@ -1402,7 +1391,6 @@ function renderResults(items) {
       previewSong({ ...it, art });        // wave appears when it actually starts playing
     };
     row.querySelector(".result__play").addEventListener("click", (e) => { e.stopPropagation(); preview(); });
-    row.querySelector(".result__add").addEventListener("click", (e) => { e.stopPropagation(); openAddToPlaylist(it); });
     row.addEventListener("click", preview);     // clicking the row previews it
     resultsEl.appendChild(row);
   });
