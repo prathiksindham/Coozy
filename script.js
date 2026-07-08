@@ -3268,6 +3268,7 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
 
   // ---- open / close -------------------------------------------------------
   function openLyrics() {
+    if (typeof setFull === 'function') setFull(true);
     open = true;
     stage.hidden = false;
     stage.setAttribute("aria-hidden", "false");
