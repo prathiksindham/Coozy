@@ -948,19 +948,19 @@ body.is-full .stage-bg { opacity: 1; }
 .voice-toast {
   position: fixed;
   left: 50%;
-  top: 10px;
+  top: 0;
   bottom: auto;
-  transform: translateX(-50%) translateY(-20px) scale(0.96);
+  transform: translateX(-50%) translateY(-100%);
   z-index: 120;
-  height: 40px;                              /* Figma 78:211/212 — fixed frame height */
-  max-width: min(220px, 92vw);               /* max-width 220 */
+  height: 48px;
+  width: min(350px, 92vw);
   box-sizing: border-box;
-  padding: 7px 17px;                         /* Figma px-17 py-7 */
-  border-radius: 999px;
-  background: rgba(18, 20, 26, 0.92);
-  -webkit-backdrop-filter: blur(14px) saturate(150%);
-  backdrop-filter: blur(14px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 8px 24px;
+  border-radius: 0 0 24px 24px;
+  background: #000000;
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
   box-shadow: 0 16px 40px -14px rgba(0, 0, 0, 0.7);
   color: #fff;
   font: 500 13px/16.9px "Inter", system-ui, sans-serif;
@@ -972,17 +972,18 @@ body.is-full .stage-bg { opacity: 1; }
   pointer-events: none;
   transition: opacity 0.34s cubic-bezier(0.22, 1, 0.36, 1), transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.voice-toast.is-show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+.voice-toast.is-show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .voice-toast[hidden] { display: none; }
 .voice-toast { overflow: hidden; }        /* keep all content clipped inside the pill */
 .voice-toast .vt-text {
-  width: 153px; height: 20px; flex: none; position: relative; overflow: hidden; white-space: nowrap;
+  width: 100%; height: 20px; flex: 1; position: relative; overflow: hidden; white-space: nowrap;
 }
 /* While listening: fixed-width pill. Each spoken word spawns at the right, then slides
    LEFT and fades out (opacity -> 0), like the reference Z animation mirrored to go left. */
 .voice-toast.listening .vt-text {
-  width: 153px;
+  width: 100%;
   height: 20px;
+  flex: 1;
   position: relative;
   overflow: hidden;         /* clip the typed + flying characters to the chip */
   text-overflow: clip;
@@ -2031,7 +2032,6 @@ body.is-full .player__arrow { opacity: 0; pointer-events: none; }
 .player__arrow,
 .fx-toggle, .fx-menu,
 .mic-btn,
-.voice-toast,
 .pl-menu,
 .pladd,
 .add-btn,
@@ -2075,7 +2075,7 @@ body.is-full .player__arrow { opacity: 0; pointer-events: none; }
    generating refraction maps when Reduce Transparency is on (see liquidglass.js).
    ========================================================================== */
 @media (prefers-reduced-transparency: reduce) {
-  .player__arrow, .fx-toggle, .fx-menu, .mic-btn, .voice-toast,
+  .player__arrow, .fx-toggle, .fx-menu, .mic-btn,
   .pl-menu, .pladd, .add-btn, .sheet, .view-toggle, .source-switch,
   .room-btn, .room-panel, .convo__chip {
     background: rgba(22, 24, 30, 0.97) !important;
@@ -2091,7 +2091,7 @@ body.is-full .player__arrow { opacity: 0; pointer-events: none; }
   .np__thumb-filter { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; filter: none !important; }
 }
 @media (prefers-contrast: more) {
-  .player__arrow, .fx-toggle, .fx-menu, .mic-btn, .voice-toast,
+  .player__arrow, .fx-toggle, .fx-menu, .mic-btn,
   .pl-menu, .pladd, .add-btn, .sheet, .view-toggle, .source-switch,
   .room-btn, .room-panel, .convo__chip {
     background: rgba(18, 20, 26, 0.95) !important;
