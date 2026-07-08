@@ -769,6 +769,7 @@ body.is-full .lyr-next {
 
 /* ---------------- Dots ---------------- */
 .player__dots {
+  display: none !important;
   position: absolute;
   bottom: 2px;
   left: 50%;
