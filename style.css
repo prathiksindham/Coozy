@@ -995,7 +995,16 @@ body.is-full .stage-bg { opacity: 1; }
   height: 36px;
   padding: 5px 12px;
   border-radius: 0 0 24px 24px;
+  animation: chip-fluid 4s ease-in-out infinite;
 }
+
+@keyframes chip-fluid {
+  0%   { border-radius: 0 0 24px 24px / 0 0 24px 24px; }
+  33%  { border-radius: 0 0 32px 18px / 0 0 28px 20px; }
+  66%  { border-radius: 0 0 18px 32px / 0 0 20px 28px; }
+  100% { border-radius: 0 0 24px 24px / 0 0 24px 24px; }
+}
+
 .voice-toast[hidden] { display: none; }
 
 .voice-toast .vt-text {
