@@ -948,8 +948,9 @@ body.is-full .stage-bg { opacity: 1; }
 .voice-toast {
   position: fixed;
   left: 50%;
-  bottom: 30px;
-  transform: translateX(-50%) translateY(10px) scale(0.96);
+  top: 10px;
+  bottom: auto;
+  transform: translateX(-50%) translateY(-20px) scale(0.96);
   z-index: 120;
   height: 40px;                              /* Figma 78:211/212 — fixed frame height */
   max-width: min(220px, 92vw);               /* max-width 220 */
@@ -1554,9 +1555,7 @@ body.is-full .player__arrow { opacity: 0; pointer-events: none; }
 
 /* Full view: caption/mic pill sits at the very bottom-center, 40px below the
    transport buttons (which end at bottom:104px). Pill is 40px tall + 24px pad. */
-body.is-full .voice-toast {
-  bottom: 24px;
-}
+/* body.is-full .voice-toast rule removed so it stays at the top notch */
 
 /* Small visible YouTube player tucked in a corner (ToS: keep it visible) */
 /* ---------- Source switch: YouTube <-> Spotify ---------- */
