@@ -908,16 +908,22 @@ body.is-full .stage-bg { opacity: 1; }
   height: 46px;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(20, 22, 28, 0.6);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
-  backdrop-filter: blur(10px) saturate(140%);
+  border: none;
+  background: #000;
   color: #fff;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  transition: transform 0.15s ease;
+  animation: fluid-blob 4s ease-in-out infinite;
 }
-.mic-btn:hover { background: rgba(40, 44, 54, 0.85); border-color: rgba(255, 255, 255, 0.3); }
+
+@keyframes fluid-blob {
+  0%   { border-radius: 45% 55% 45% 55% / 55% 45% 55% 45%; }
+  33%  { border-radius: 55% 45% 55% 45% / 45% 55% 45% 55%; }
+  66%  { border-radius: 50% 50% 40% 60% / 60% 40% 50% 50%; }
+  100% { border-radius: 45% 55% 45% 55% / 55% 45% 55% 45%; }
+}
+
+.mic-btn:hover { background: #111; }
 .mic-btn:active { transform: scale(0.92); }
 /* "Hey Maya" wake mode active (toggled by LONG-PRESSING the mic) — a pulsing sonar
    ripple radiating from the button. Only shown while armed; the plain push-to-talk
@@ -939,9 +945,8 @@ body.is-full .stage-bg { opacity: 1; }
 .mic-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 /* Listening = a calm static teal state (no ripple animation) */
 .mic-btn.is-listening {
-  background: rgba(41, 115, 115, 0.55);
-  border-color: #297373;
-  color: #dff5f5;
+  background: #000;
+  color: #27e5f3; /* light up the icon instead of the whole background */
 }
 
 /* Voice status toast (transcript + blob/icon), bottom-center */
@@ -984,64 +989,18 @@ body.is-full .stage-bg { opacity: 1; }
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  /* Remove overflow: hidden so fillet curves can extend beyond the box */
-  overflow: visible;
+  overflow: hidden;
 }
 .voice-toast.is-show { 
   opacity: 1; 
-  /* Expanded State */
-  width: 288px; 
-  max-width: 288px;
+  /* Locked exactly to notch width */
+  width: 144px; 
+  max-width: 144px;
   height: 36px;
   padding: 5px 12px;
   border-radius: 0 0 24px 24px;
 }
 .voice-toast[hidden] { display: none; }
-
-/* Inverted curves for the smooth "squircle" notch fillet */
-.voice-toast::before,
-.voice-toast::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  width: 12px;
-  height: 12px;
-  background: transparent;
-  pointer-events: none;
-  transition: width 0.8s cubic-bezier(0.34, 1.36, 0.64, 1),
-              height 0.8s cubic-bezier(0.34, 1.36, 0.64, 1),
-              left 0.8s cubic-bezier(0.34, 1.36, 0.64, 1),
-              right 0.8s cubic-bezier(0.34, 1.36, 0.64, 1),
-              border-radius 0.8s cubic-bezier(0.34, 1.36, 0.64, 1);
-}
-
-/* Idle state fillet curves */
-.voice-toast::before {
-  left: -12px;
-  border-top-right-radius: 12px;
-  box-shadow: 4px -4px 0 4px #000;
-}
-.voice-toast::after {
-  right: -12px;
-  border-top-left-radius: 12px;
-  box-shadow: -4px -4px 0 4px #000;
-}
-
-/* Expanded state fillet curves */
-.voice-toast.is-show::before {
-  width: 24px;
-  height: 24px;
-  left: -24px;
-  border-top-right-radius: 24px;
-  box-shadow: 10px -10px 0 10px #000;
-}
-.voice-toast.is-show::after {
-  width: 24px;
-  height: 24px;
-  right: -24px;
-  border-top-left-radius: 24px;
-  box-shadow: -10px -10px 0 10px #000;
-}
 
 .voice-toast .vt-text {
   width: 100%; height: 20px; flex: 1; position: relative; overflow: hidden; white-space: nowrap;
@@ -2099,7 +2058,7 @@ body.is-full .player__arrow { opacity: 0; pointer-events: none; }
    ========================================================================== */
 .player__arrow,
 .fx-toggle, .fx-menu,
-.mic-btn,
+
 .voice-toast,
 .pl-menu,
 .pladd,
@@ -2144,7 +2103,7 @@ body.is-full .player__arrow { opacity: 0; pointer-events: none; }
    generating refraction maps when Reduce Transparency is on (see liquidglass.js).
    ========================================================================== */
 @media (prefers-reduced-transparency: reduce) {
-  .player__arrow, .fx-toggle, .fx-menu, .mic-btn, .voice-toast,
+  .player__arrow, .fx-toggle, .fx-menu, .voice-toast,
   .pl-menu, .pladd, .add-btn, .sheet, .view-toggle, .source-switch,
   .room-btn, .room-panel, .convo__chip {
     background: rgba(22, 24, 30, 0.97) !important;
@@ -2160,7 +2119,7 @@ body.is-full .player__arrow { opacity: 0; pointer-events: none; }
   .np__thumb-filter { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; filter: none !important; }
 }
 @media (prefers-contrast: more) {
-  .player__arrow, .fx-toggle, .fx-menu, .mic-btn, .voice-toast,
+  .player__arrow, .fx-toggle, .fx-menu, .voice-toast,
   .pl-menu, .pladd, .add-btn, .sheet, .view-toggle, .source-switch,
   .room-btn, .room-panel, .convo__chip {
     background: rgba(18, 20, 26, 0.95) !important;
