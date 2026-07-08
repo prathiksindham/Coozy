@@ -3352,5 +3352,8 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
   const micBtn = document.getElementById('micBtn');
   if (micBtn) leftActions.appendChild(micBtn);
   
+  const searchBtn = document.getElementById('addBtn');
+  if (searchBtn) leftActions.appendChild(searchBtn);
+  
   document.body.appendChild(leftActions);
 })();

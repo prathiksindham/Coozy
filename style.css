@@ -1691,9 +1691,14 @@ body.is-full .voice-toast {
     left: 20px;
     bottom: 24px;
     display: flex;
-    align-items: flex-end;
+    flex-direction: column;
+    align-items: center;
     gap: 16px;
     z-index: 100;
+  }
+  
+  .mobile-left-actions .add-btn {
+    position: static;
   }
 
   .mic-btn {
@@ -1763,8 +1768,11 @@ body.is-full .voice-toast {
   /* Hide view-toggle on mobile */
   .view-toggle { display: none !important; }
 
-  /* Bottom right add-btn */
-  .add-btn { bottom: 24px; left: auto; right: 20px; }
+  .mobile-left-actions {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+  .add-btn { position: static; }
 
   /* Room btn is not in the FAB menu anymore */
   .room-btn { display: none !important; }
