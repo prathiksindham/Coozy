@@ -1581,7 +1581,7 @@ body.is-full .player__frame,
 body.is-full .player__track {
   top: 40px;                     /* 40px from top as requested */
   bottom: auto;
-  transform: translateX(-50%);
+  transform: translateX(-50%);  /* remove the Y=-50% offset so top:40px works */
 }
 body.is-full .player__arrow { opacity: 0; pointer-events: none; }
 
