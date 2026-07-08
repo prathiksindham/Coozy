@@ -955,9 +955,9 @@ body.is-full .stage-bg { opacity: 1; }
   
   /* Retracted (Notch) State */
   height: 24px;
-  width: 160px;
+  width: 148px; /* M3 MacBook Air notch width in CSS pixels */
   box-sizing: border-box;
-  padding: 0 16px;
+  padding: 0 12px;
   border-radius: 0 0 16px 16px;
   background: #000000;
   color: #ffffff;
@@ -968,7 +968,7 @@ body.is-full .stage-bg { opacity: 1; }
   letter-spacing: -0.0762px;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   opacity: 0;
   pointer-events: none;
   
@@ -981,11 +981,11 @@ body.is-full .stage-bg { opacity: 1; }
 }
 .voice-toast.is-show { 
   opacity: 1; 
-  /* Expanded State (matches MacBook notch max width) */
-  width: 210px; 
-  height: 44px;
-  padding: 8px 16px;
-  border-radius: 0 0 20px 20px;
+  /* Expanded State (drops down but does not widen past the notch!) */
+  width: 148px; 
+  height: 48px;
+  padding: 8px 12px;
+  border-radius: 0 0 18px 18px;
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
 }
 .voice-toast[hidden] { display: none; }
