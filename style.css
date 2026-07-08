@@ -959,7 +959,7 @@ body.is-full .stage-bg { opacity: 1; }
   box-sizing: border-box;
   padding: 0 12px;
   border-radius: 0 0 16px 16px;
-  background: #000000;
+  /* background: #000000; Removed to let liquid glass take over */
   color: #ffffff;
   border: none;
   box-shadow: none;
@@ -983,10 +983,10 @@ body.is-full .stage-bg { opacity: 1; }
   opacity: 1; 
   /* Expanded State (drops down but does not widen past the notch!) */
   width: 148px; 
-  height: 48px;
-  padding: 8px 12px;
-  border-radius: 0 0 18px 18px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+  height: 36px;
+  padding: 5px 12px;
+  border-radius: 0 0 16px 16px;
+  /* Liquid glass handles the shadow */
 }
 .voice-toast[hidden] { display: none; }
 .voice-toast { overflow: hidden; }        /* keep all content clipped inside the pill */
@@ -2047,6 +2047,7 @@ body.is-full .player__arrow { opacity: 0; pointer-events: none; }
 .player__arrow,
 .fx-toggle, .fx-menu,
 .mic-btn,
+.voice-toast,
 .pl-menu,
 .pladd,
 .add-btn,
@@ -2090,7 +2091,7 @@ body.is-full .player__arrow { opacity: 0; pointer-events: none; }
    generating refraction maps when Reduce Transparency is on (see liquidglass.js).
    ========================================================================== */
 @media (prefers-reduced-transparency: reduce) {
-  .player__arrow, .fx-toggle, .fx-menu, .mic-btn,
+  .player__arrow, .fx-toggle, .fx-menu, .mic-btn, .voice-toast,
   .pl-menu, .pladd, .add-btn, .sheet, .view-toggle, .source-switch,
   .room-btn, .room-panel, .convo__chip {
     background: rgba(22, 24, 30, 0.97) !important;
@@ -2106,7 +2107,7 @@ body.is-full .player__arrow { opacity: 0; pointer-events: none; }
   .np__thumb-filter { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; filter: none !important; }
 }
 @media (prefers-contrast: more) {
-  .player__arrow, .fx-toggle, .fx-menu, .mic-btn,
+  .player__arrow, .fx-toggle, .fx-menu, .mic-btn, .voice-toast,
   .pl-menu, .pladd, .add-btn, .sheet, .view-toggle, .source-switch,
   .room-btn, .room-panel, .convo__chip {
     background: rgba(18, 20, 26, 0.95) !important;
