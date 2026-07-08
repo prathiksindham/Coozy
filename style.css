@@ -1579,8 +1579,8 @@ body.is-full .nowplaying {
 }
 body.is-full .player__frame,
 body.is-full .player__track {
-  top: auto;
-  bottom: 257px;                 /* 104 panel-bottom + ~129 panel + 24 gap */
+  top: 40px;                     /* 40px from top as requested */
+  bottom: auto;
   transform: translateX(-50%);
 }
 body.is-full .player__arrow { opacity: 0; pointer-events: none; }
