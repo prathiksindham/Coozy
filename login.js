@@ -188,7 +188,7 @@
         profileBtn.hidden = false;
         try {
           const user = JSON.parse(localStorage.getItem(USER_LS) || "{}");
-          profileAvatar.src = user.picture || "";
+          profileAvatar.src = user.picture || "assets/login/av-0.png";
         } catch(e) {}
       } else {
         profileBtn.hidden = true;

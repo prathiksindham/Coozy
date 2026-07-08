@@ -3371,7 +3371,7 @@ function openProfile() {
     const user = JSON.parse(localStorage.getItem("coozy_user") || "{}");
     document.getElementById("profileSheetName").textContent = user.name || "User";
     document.getElementById("profileSheetEmail").textContent = user.email || "";
-    document.getElementById("profileSheetAvatar").src = user.picture || "";
+    document.getElementById("profileSheetAvatar").src = user.picture || "assets/login/av-0.png";
   } catch (e) {}
 
   // Reset feedback form
