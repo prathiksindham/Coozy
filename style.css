@@ -1583,6 +1583,9 @@ body.is-full .player__track {
   bottom: auto;
   transform: translateX(-50%);  /* remove the Y=-50% offset so top:40px works */
 }
+body.is-full .player__track {
+  transform: translateX(-50%) !important; /* override the specific .player__track transform */
+}
 body.is-full .player__arrow { opacity: 0; pointer-events: none; }
 
 /* Full view: caption/mic pill sits at the very bottom-center, 40px below the
