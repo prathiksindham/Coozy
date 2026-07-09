@@ -488,29 +488,38 @@ let lastAppliedEffect = null;
 let lastAppliedArt = null;
 
 function fxLoop(now) {
-  requestAnimationFrame(fxLoop);
   const dt = Math.min((now - fxClockLast) / 1000, 0.05); fxClockLast = now;
   fxEnergy *= Math.pow(0.85, dt * 60);
   fxTime += (0.35 + fxEnergy * 2.6) * dt;         // baseline drift + interaction boost
+
+  if (document.hidden) {
+      setTimeout(() => requestAnimationFrame(fxLoop), 500);
+      return;
+  }
+
+  const disc = discs[index];
+  if (!disc) { requestAnimationFrame(fxLoop); return; }
+  
+  const artUrl = DISCS[index].art;
+  const img = artImgCache[artUrl];
+
+  if (fxEnergy < 0.05 && currentEffect === lastAppliedEffect && artUrl === lastAppliedArt) {
+      setTimeout(() => requestAnimationFrame(fxLoop), 100);
+      return;
+  }
+  
+  requestAnimationFrame(fxLoop);
+
   if (now - fxProcLast < 33) return;              // cap heavy processing at ~30fps
   fxProcLast = now;
-  const disc = discs[index];
-  if (!disc) return;
+
   if (currentEffect === "none") { 
     disc.classList.remove("has-fx"); 
     lastAppliedEffect = "none";
     return; 
   }
   
-  const artUrl = DISCS[index].art;
-  const img = artImgCache[artUrl];
   if (!img || !img.complete || !img.naturalWidth) return;
-  
-  // ENERGY SAVING: Only process the canvas if we are actively scratching (high energy), 
-  // or if the effect/art just changed! This eliminates idle CPU drain.
-  if (fxEnergy < 0.05 && currentEffect === lastAppliedEffect && artUrl === lastAppliedArt) {
-      return;
-  }
   
   try {
     applyEffect(img, disc.querySelector(".disc__dcanvas"), currentEffect, fxTime, FX_S);
@@ -541,17 +550,31 @@ let full = false;          // full-screen now-playing view
 
 let lastT = performance.now();
 function tick(now) {
+  if (document.hidden) {
+      lastT = now;
+      setTimeout(() => requestAnimationFrame(tick), 500);
+      return;
+  }
+
   const dt = Math.min((now - lastT) / 1000, 0.05);
   lastT = now;
+  
+  let moving = false;
   for (let i = 0; i < discs.length; i++) {
     const seated = i === index && !dragging && !paused;
     const target = seated ? SPIN_TARGET : 0;
     const k = seated ? K_UP : K_DOWN;
     vel[i] += (target - vel[i]) * Math.min(k * dt, 1);   // inertial approach
+    if (Math.abs(vel[i]) > 0.001) moving = true;
     angle[i] += vel[i] * dt;
     spinEls[i].style.transform = `rotate(${angle[i].toFixed(4)}rad)`;
   }
-  requestAnimationFrame(tick);
+  
+  if (!moving && paused) {
+      setTimeout(() => requestAnimationFrame(tick), 100);
+  } else {
+      requestAnimationFrame(tick);
+  }
 }
 requestAnimationFrame(tick);
 

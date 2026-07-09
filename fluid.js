@@ -360,7 +360,10 @@ const fluidGlow = (() => {
     gl.uniform2f(pressureProgram.uniforms.u_texel, velocity.texelSizeX, velocity.texelSizeY);
     gl.uniform1i(pressureProgram.uniforms.u_divergence_texture, divergence.attach(1));
     
-    for (let i = 0; i < 15; i++) {
+    // Performance optimization for battery: 
+    // Mobile gets 3 passes, desktop gets 10. (Down from fixed 15)
+    const pressurePasses = window.innerWidth < 800 ? 3 : 10;
+    for (let i = 0; i < pressurePasses; i++) {
         gl.uniform1i(pressureProgram.uniforms.u_pressure_texture, pressure.read().attach(2));
         blit(pressure.write());
         pressure.swap();
