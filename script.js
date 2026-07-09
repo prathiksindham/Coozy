@@ -3565,7 +3565,7 @@ function openProfile() {
   
   // Populate data
   try {
-    const user = JSON.parse(localStorage.getItem("coozy_user") || "{}");
+    const user = JSON.parse(localStorage.getItem("musicUser") || "{}");
     document.getElementById("profileSheetName").textContent = user.name || "User";
     document.getElementById("profileSheetEmail").textContent = user.email || "";
     document.getElementById("profileSheetAvatar").src = user.picture || "assets/login/av-0.png";
