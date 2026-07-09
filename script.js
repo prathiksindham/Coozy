@@ -3183,6 +3183,8 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
   const nextEl = document.getElementById("lyrNext");
   const plainEl = document.getElementById("lyricsPlain");
   const status = document.getElementById("lyricsStatus");
+  const statusText = document.getElementById("lyricsStatusText");
+  const lyrBlob = document.getElementById("lyrBlob");
   const morphEl = curEl ? curEl.querySelector(".lyr-morph") : null;
   const m1 = morphEl ? morphEl.querySelector(".m1") : null;
   const m2 = morphEl ? morphEl.querySelector(".m2") : null;
@@ -3201,7 +3203,7 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
 
   function target() { return (typeof tempSong !== "undefined" && tempSong) ? tempSong : DISCS[index]; }
   function songKey(d) { return d ? ((d.title || "") + SEP + (d.artist || "")) : ""; }
-  function lineText(l) { return l ? (l.text || "♪") : ""; }
+  function lineText(l) { return (l && l.text && l.text.trim()) ? l.text : "♪"; }
 
   function posSec() {
     if (typeof tempSong !== "undefined" && tempSong && typeof ytReady !== "undefined" && ytReady && yt && yt.getCurrentTime) {
