@@ -1,3 +1,4 @@
-anthropic>=0.40.0
-piper-tts        # Sable's natural local voice (no API key). Needs a voice model in persona/voices/
-yt-dlp           # server-side YouTube audio proxy
+# All are optional — the server degrades gracefully when they're absent.
+# anthropic>=0.40.0   # Anthropic Claude (needs ANTHROPIC_API_KEY) — optional
+# piper-tts           # Local neural TTS voice — optional, needs model file in persona/voices/
+# yt-dlp is in the main requirements.txt

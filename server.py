@@ -93,6 +93,17 @@ def _load_env():
 
 
 _load_env()
+
+# Auto-select LLM provider based on available API keys so the app works on Render
+# without manual env var configuration. Priority: explicit LLM_PROVIDER > gemini > groq > anthropic.
+if not os.environ.get("LLM_PROVIDER"):
+    if os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"):
+        os.environ["LLM_PROVIDER"] = "gemini"
+    elif os.environ.get("GROQ_API_KEY"):
+        os.environ["LLM_PROVIDER"] = "groq"
+    elif os.environ.get("ANTHROPIC_API_KEY"):
+        os.environ["LLM_PROVIDER"] = "anthropic"
+
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/124.0 Safari/537.36")
 # The googlevideo URL yt-dlp resolves via the "android" client expects this UA.

@@ -2195,6 +2195,9 @@ function currentTrackInfo() {
 function _songRelated(t) {
   return /\b(song|track|tune|this|that|it|artist|singer|band|rapper|who\s|genre|produc|album|lyric|beat|vocal|remix|cover|playing|voice|sound like|by whom)\b/i.test(t);
 }
+// Always pass the current track context to Sable — she'll decide if the question is about it.
+// Previously _songRelated() was too narrow and blocked context for questions like
+// "what do you think of this" or "why did he write it" or "tell me the story".
 function soloTalkToSable(text) {
   const t = (text || "").trim();
   if (!t) return;
@@ -2203,7 +2206,7 @@ function soloTalkToSable(text) {
   fetch("/api/persona", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ room: soloSessionId(), kind: "chat", from: "You", text: t,
-      track: _songRelated(t) ? currentTrackInfo() : null, playing: !paused, solo: true }),
+      track: currentTrackInfo(), playing: !paused, solo: true }),  // always send track context
   }).then((r) => r.json()).then(async (d) => {
     if (d && d.ok && Array.isArray(d.tool_calls) && d.tool_calls.length) {
       const res = await runToolCalls(d.tool_calls);       // create the playlist(s) locally
