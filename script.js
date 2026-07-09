@@ -3018,6 +3018,7 @@ function _pillShow(text, sable) {
   streamStop();                                 // stop any in-flight word stream
   voiceToast.classList.toggle("sable", !!sable);
   voiceToast.classList.remove("listening");
+  if (voiceIcon) voiceIcon.textContent = "";
   if (voiceText) voiceText.textContent = text || "";
   voiceToast.hidden = false;
   requestAnimationFrame(() => voiceToast.classList.add("is-show"));
