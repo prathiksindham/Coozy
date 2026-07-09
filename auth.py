@@ -101,32 +101,26 @@ def save_playlists(uid, playlists):
 
 
 # ------------------------------------------------ Google token verification ---
+from google.oauth2 import id_token
+from google.auth.transport import requests
+
 def verify_google(credential, client_id):
     """Validate a Google ID token. Returns claims dict on success, else None.
-
-    Uses Google's tokeninfo endpoint, which checks the signature + expiry for us;
-    we additionally enforce the audience (our client id) and a verified email.
+    Uses Google's official library to verify the token locally via public keys,
+    avoiding the tokeninfo endpoint which gets rate-limited in production.
     """
     if not credential or not client_id:
         return None
     try:
-        url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + urllib.parse.quote(credential)
-        with urllib.request.urlopen(url, timeout=10) as r:
-            claims = json.load(r)
-    except Exception:
-        return None
-    if claims.get("aud") != client_id:
-        return None
-    if claims.get("iss") not in ("accounts.google.com", "https://accounts.google.com"):
-        return None
-    try:
-        if float(claims.get("exp", 0)) < time.time():
+        request = requests.Request()
+        claims = id_token.verify_oauth2_token(credential, request, client_id)
+        if claims.get("iss") not in ("accounts.google.com", "https://accounts.google.com"):
             return None
+        if not claims.get("sub"):
+            return None
+        return claims
     except Exception:
         return None
-    if not claims.get("sub"):
-        return None
-    return claims
 
 
 # --------------------------------------------------------- session cookies ----

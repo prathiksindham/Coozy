@@ -5,3 +5,4 @@ gTTS>=2.3.2             # Google Text-to-Speech for Sable's voice (/api/tts)
 
 # Optional — uncomment to enable Sable's local neural voice (heavy, needs model):
 # piper-tts             # local neural TTS (needs a voice model in persona/voices/)
+google-auth
