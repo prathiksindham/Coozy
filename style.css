@@ -779,7 +779,7 @@ body.is-full .lyr-next {
 .lyrics-status {
   position: absolute;
   inset: 0;
-  display: none;
+  display: grid; /* always grid so children can animate out */
   place-items: center;
   place-content: center;
   text-align: center;
@@ -793,22 +793,22 @@ body.is-full .lyr-next {
 .lyr-blob {
   display: none;
   position: relative;
-  width: 48px;
-  height: 48px;
-  margin-bottom: 16px;
+  width: 160px;
+  height: 160px;
+  margin-bottom: 24px;
   overflow: hidden;
-  border-radius: 24px;
+  border-radius: 80px;
 }
 .lyr-blob canvas {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 180px;
-  height: 180px;
+  width: 260px; /* zoom to avoid clipping borders */
+  height: 260px;
   display: block;
 }
-.lyrics-stage.is-empty .lyrics-status { display: grid; }
+/* Removed .lyrics-stage.is-empty .lyrics-status { display: grid; } */
 .lyrics-stage.is-empty .lyrics-flow,
 .lyrics-stage.is-empty .lyrics-plain { display: none; }
 .lyrics-stage.is-plain .lyrics-flow { display: none; }
