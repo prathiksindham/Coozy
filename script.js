@@ -1238,6 +1238,7 @@ function purgeTrailingTemp() {
 // Songs" or any playlist. The user saves it explicitly via the heart / "add to playlist".
 function previewSong(item) {
   wantPlay = true;
+  paused = false;
   const ex = findDiscByKey(trackId(item));
   if (ex >= 0) { goTo(ex); return; }   // already in this playlist -> just play it
   purgeTrailingTemp();                  // keep only one un-saved preview at a time
