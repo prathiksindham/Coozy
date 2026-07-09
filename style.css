@@ -793,19 +793,19 @@ body.is-full .lyr-next {
 .lyr-blob {
   display: none;
   position: relative;
-  width: 160px;
-  height: 160px;
+  width: 320px;
+  height: 320px;
   margin-bottom: 24px;
   overflow: hidden;
-  border-radius: 80px;
+  border-radius: 160px;
 }
 .lyr-blob canvas {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 260px; /* zoom to avoid clipping borders */
-  height: 260px;
+  width: 540px; /* zoomed in to crop out the extra white frame of the Rive artboard */
+  height: 540px;
   display: block;
 }
 /* Removed .lyrics-stage.is-empty .lyrics-status { display: grid; } */

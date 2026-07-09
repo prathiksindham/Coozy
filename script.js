@@ -955,7 +955,13 @@ window.spotifyOnState = function (st) {
 if (audioEl) {
   audioEl.addEventListener("play",  () => { paused = false; wantPlay = true; setPlayIcon(true); audioRetries = 0; });
   audioEl.addEventListener("playing", () => { audioRetries = 0; });   // real audio started
-  audioEl.addEventListener("pause", () => { paused = true; setPlayIcon(false); });
+  audioEl.addEventListener("pause", () => {
+    if (wantPlay) {
+      audioEl.play().catch(() => {});
+    } else {
+      paused = true; setPlayIcon(false);
+    }
+  });
   audioEl.addEventListener("ended", () => { next(); });
   audioEl.addEventListener("timeupdate", () => {
     if (scrubbing) return;
@@ -2786,7 +2792,7 @@ function startLocal() {
 }
 function pauseLocal() {
   const eng = engineFor(DISCS[index]);
-  paused = true; if (typeof setPlayIcon === "function") setPlayIcon(false);
+  wantPlay = false; paused = true; if (typeof setPlayIcon === "function") setPlayIcon(false);
   if (eng === "audio") { try { audioEl.pause(); } catch (e) {} }
   else if (eng === "yt") { try { if (ytReady && yt) yt.pauseVideo(); } catch (e) {} }
   else if (eng === "spotify") { try { if (window.SP) window.SP.pause(); } catch (e) {} }
