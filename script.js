@@ -1049,7 +1049,14 @@ window.onYouTubeIframeAPIReady = function () {
         onStateChange: (e) => {
           const S = YT.PlayerState;
           if (e.data === S.PLAYING) { paused = false; wantPlay = true; setPlayIcon(true); }
-          else if (e.data === S.PAUSED || e.data === S.ENDED || e.data === S.CUED) { paused = true; setPlayIcon(false); }
+          else if (e.data === S.PAUSED) {
+            if (wantPlay) {
+              try { yt.playVideo(); } catch (err) {}
+            } else {
+              paused = true; setPlayIcon(false);
+            }
+          }
+          else if (e.data === S.ENDED || e.data === S.CUED) { paused = true; setPlayIcon(false); }
           if (e.data === S.ENDED && !tempSong) next();   // don't advance cassettes on a preview end
         },
         onError: () => { paused = true; setPlayIcon(false); resetProgress(); },
@@ -3372,6 +3379,7 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
 
   // ---- open / close -------------------------------------------------------
   function openLyrics() {
+    const wasPlaying = typeof paused !== 'undefined' && !paused;
     if (typeof setFull === 'function') setFull(true);
     open = true;
     stage.hidden = false;
@@ -3381,7 +3389,10 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
     load(false);
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(tick);
-    requestAnimationFrame(() => highlight(true));
+    requestAnimationFrame(() => {
+      highlight(true);
+      if (wasPlaying && typeof setPlayIcon === 'function') setPlayIcon(true);
+    });
   }
   function closeLyrics() {
     open = false;

@@ -665,10 +665,10 @@ body:not(.is-full) .nowplaying {
           mask-image: linear-gradient(to bottom, transparent 0, #000 24%, #000 76%, transparent 100%);
 }
 .lyrics-stage[hidden] { display: none; }
-/* full view: sit exactly where the CD frame is (bottom-anchored), same size */
+/* full view: sit exactly where the CD frame is (top: 40px), same size */
 body.is-full .lyrics-stage {
-  top: auto;
-  bottom: 257px;
+  top: 40px;
+  bottom: auto;
   transform: translateX(-50%);
 }
 
