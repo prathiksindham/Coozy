@@ -1854,9 +1854,23 @@ function _musicShouldDuck() {
 function applyMusicVolume() {
   const ducked = _musicShouldDuck();
   const hi = _musicBase;
-  try { if (window.ytPlayer && window.ytPlayer.setVolume) window.ytPlayer.setVolume(ducked ? Math.round(DUCK_LO * 100) : Math.round(hi * 100)); } catch (e) {}
-  try { if (audioEl) audioEl.volume = ducked ? DUCK_LO : hi; } catch (e) {}
-  try { if (window.SP && window.SP.setVolume) window.SP.setVolume(ducked ? DUCK_LO : hi * 0.9); } catch (e) {}
+  
+  if (ducked) {
+    try { if (window.ytPlayer && window.ytPlayer.pauseVideo) window.ytPlayer.pauseVideo(); } catch (e) {}
+    try { if (audioEl && !audioEl.paused) audioEl.pause(); } catch (e) {}
+    try { if (window.SP && window.SP.pause) window.SP.pause(); } catch (e) {}
+  } else {
+    // Resume music if it was playing before
+    if (typeof paused !== "undefined" && !paused) {
+      try { if (window.ytPlayer && window.ytPlayer.playVideo) window.ytPlayer.playVideo(); } catch (e) {}
+      try { if (audioEl && audioEl.paused && window.audioSrcFor) { if(!audioEl.src) audioEl.src = audioSrcFor(DISCS[index]); audioEl.play().catch(()=>{}); } } catch (e) {}
+      try { if (window.SP && window.SP.resume) window.SP.resume(); } catch (e) {}
+    }
+    // Restore volume levels
+    try { if (window.ytPlayer && window.ytPlayer.setVolume) window.ytPlayer.setVolume(Math.round(hi * 100)); } catch (e) {}
+    try { if (audioEl) audioEl.volume = hi; } catch (e) {}
+    try { if (window.SP && window.SP.setVolume) window.SP.setVolume(hi * 0.9); } catch (e) {}
+  }
 }
 // Back-compat: callers pass a hint but the real state comes from the flags above.
 function duckAudio(_on) { applyMusicVolume(); }

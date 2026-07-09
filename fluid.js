@@ -60,8 +60,11 @@ const fluidGlow = (() => {
       float dy = min(vUv.y, 1.0 - vUv.y);
       float distToEdge = min(dx, dy);
       
-      // Mask: 1.0 at edge, fading to 0.0 inwards (adjust 0.15 for border thickness)
-      float mask = smoothstep(0.12, 0.0, distToEdge);
+      // Make thinner on mobile (resolution width < 800)
+      float thickness = u_resolution.x < 800.0 ? 0.04 : 0.07;
+      
+      // Mask: 1.0 at edge, fading to 0.0 inwards
+      float mask = smoothstep(thickness, 0.0, distToEdge);
       
       // Early exit for pixels completely inside (optimization)
       if (mask <= 0.01) {
@@ -77,17 +80,17 @@ const fluidGlow = (() => {
       vec3 r = vec3(fbm(p + 4.0 * q + vec3(1.7, 9.2, 0.0)), fbm(p + 4.0 * q + vec3(8.3, 2.8, 0.0)), 0.0);
       float n = fbm(p + 4.0 * r);
       
-      // Map noise [-1, 1] to [0, 1] and boost contrast
-      n = smoothstep(-0.2, 0.8, n);
+      // Map noise [-1, 1] to [0, 1] and boost contrast significantly
+      n = smoothstep(-0.1, 0.6, n);
       
       // Base color: Maya's teal green rgb(39, 229, 145) = (0.15, 0.9, 0.57)
       vec3 color = vec3(0.15, 0.90, 0.57);
       
-      // Mix with a slightly darker variant based on noise for depth
-      vec3 fluidColor = mix(color * 0.4, color * 1.5, n);
+      // High contrast mix with darker/lighter variants
+      vec3 fluidColor = mix(color * 0.1, color * 2.2, n);
       
       // Apply mask and an extra power curve for soft glowing edges
-      float alpha = mask * n * 1.5;
+      float alpha = mask * n * 2.0;
       
       gl_FragColor = vec4(fluidColor * alpha, alpha);
     }
