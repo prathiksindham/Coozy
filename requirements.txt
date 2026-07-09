@@ -1,9 +1,7 @@
 # Core server (server.py, auth.py) runs on the Python standard library alone.
 # These extras enable optional features and degrade gracefully if missing:
 yt-dlp>=2024.1.0        # server-side YouTube audio proxy (/api/audio)
+gTTS>=2.3.2             # Google Text-to-Speech for Sable's voice (/api/tts)
 
-# Optional — uncomment to enable Sable's AI persona / local voice. These are
-# heavy (onnxruntime, model downloads) and need API keys, so they're off by
-# default to keep the hosted build fast and reliable:
-# anthropic>=0.40.0     # /api/persona LLM (needs ANTHROPIC_API_KEY)
+# Optional — uncomment to enable Sable's local neural voice (heavy, needs model):
 # piper-tts             # local neural TTS (needs a voice model in persona/voices/)

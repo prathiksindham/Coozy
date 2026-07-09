@@ -614,20 +614,43 @@ def _piper_voice():
 
 
 def tts_wav(text):
-    """Synthesize `text` to WAV bytes (cached by content, so replays are free)."""
+    """Synthesize `text` to audio bytes (MP3 via gTTS, WAV via Piper as fallback).
+    Cached by content so replays are free."""
     key = hashlib.sha1(text.encode("utf-8")).hexdigest()[:20]
     hit = _tts_cache.get(key)
     if hit:
         return hit
-    import io, wave
-    buf = io.BytesIO()
-    with _piper_lock:                       # serialize onnx synthesis
-        voice = _piper if _piper is not None else None
-    if voice is None:
-        voice = _piper_voice()
-    with wave.open(buf, "wb") as w:
-        voice.synthesize_wav(text, w)
-    data = buf.getvalue()
+
+    data = None
+
+    # Primary: gTTS (Google Text-to-Speech) — works on any host, no model needed
+    try:
+        from gtts import gTTS
+        import io
+        buf = io.BytesIO()
+        gTTS(text=text, lang="en", slow=False).write_to_fp(buf)
+        data = buf.getvalue()
+    except Exception:
+        pass
+
+    # Fallback: local Piper neural TTS (only if installed with model)
+    if not data:
+        try:
+            import io, wave
+            buf = io.BytesIO()
+            with _piper_lock:
+                voice = _piper if _piper is not None else None
+            if voice is None:
+                voice = _piper_voice()
+            with wave.open(buf, "wb") as w:
+                voice.synthesize_wav(text, w)
+            data = buf.getvalue()
+        except Exception:
+            pass
+
+    if not data:
+        raise RuntimeError("No TTS engine available")
+
     _tts_cache[key] = data
     _tts_order.append(key)
     while len(_tts_order) > 48:
@@ -758,8 +781,12 @@ class Handler(SimpleHTTPRequestHandler):
                 self.send_response(400); self.end_headers(); return
             try:
                 data = tts_wav(text)
+                # gTTS returns MP3; Piper returns WAV — detect by magic bytes
+                content_type = "audio/mpeg" if data[:3] in (b"ID3", b"\xff\xfb", b"\xff\xf3", b"\xff\xf2") or data[1:3] == b"\xfb" else "audio/wav"
+                if data[:2] == b"\xff\xfb" or data[:3] == b"ID3":
+                    content_type = "audio/mpeg"
                 self.send_response(200)
-                self.send_header("Content-Type", "audio/wav")
+                self.send_header("Content-Type", content_type)
                 self.send_header("Access-Control-Allow-Origin", "*")
                 self.send_header("Content-Length", str(len(data)))
                 self.end_headers()
