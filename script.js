@@ -1758,6 +1758,7 @@ function initRive() {
         try { riveInst.volume = 0; } catch (e) {}          // mute any audio in the .riv
         try { const sms = riveInst.stateMachineNames || []; riveSM = sms[0] || null; } catch (e) { riveSM = null; }
         try { riveInst.resizeDrawingSurfaceToCanvas(); } catch (e) {}
+        try { if (riveSM) riveInst.play(riveSM); else riveInst.play(); } catch (e) {}
       },
       onLoadError: () => { riveInst = null; },
     });
@@ -1768,7 +1769,7 @@ function riveListen(on) {
   if (!riveInst || !on) return;
   requestAnimationFrame(() => {
     try { riveInst.resizeDrawingSurfaceToCanvas(); } catch (e) {}
-    try { riveSM ? riveInst.play(riveSM) : riveInst.play(); } catch (e) {}
+    try { if (riveSM) riveInst.play(riveSM); else riveInst.play(); } catch (e) {}
   });
 }
 // Rive is initialised lazily on the first chip show (so the canvas has a real size).
@@ -2771,13 +2772,14 @@ function tryPendingSeek() {
 }
 function startLocal() {
   const d = DISCS[index], eng = engineFor(d);
-  wantPlay = true;
+  wantPlay = true; paused = false; if (typeof setPlayIcon === "function") setPlayIcon(true);
   if (eng === "audio") { if (!audioEl.src) { audioEl.src = audioSrcFor(d); audioEl.load(); } audioEl.play().catch(() => {}); }
   else if (eng === "yt") { if (ytReady && yt) try { yt.playVideo(); } catch (e) {} }
   else if (eng === "spotify") { if (window.SP) window.SP.toggle(d.spotify); }
 }
 function pauseLocal() {
   const eng = engineFor(DISCS[index]);
+  paused = true; if (typeof setPlayIcon === "function") setPlayIcon(false);
   if (eng === "audio") { try { audioEl.pause(); } catch (e) {} }
   else if (eng === "yt") { try { if (ytReady && yt) yt.pauseVideo(); } catch (e) {} }
   else if (eng === "spotify") { try { if (window.SP) window.SP.pause(); } catch (e) {} }
@@ -3211,6 +3213,8 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
     if (!l || l.t == null || l.t < 0) return;
     try { seekAbsolute(Math.max(0, l.t - 0.15)); } catch (e) {}
     if (typeof wantPlay !== "undefined") wantPlay = true;
+    if (typeof paused !== "undefined") paused = false;
+    if (typeof setPlayIcon === "function") setPlayIcon(true);
     if (typeof startLocal === "function") { try { startLocal(); } catch (e) {} }
     highlight(true);
   }
