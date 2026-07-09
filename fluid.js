@@ -278,8 +278,8 @@ const fluidGlow = (() => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     
-    // Scale down resolution for physics to save performance
-    const resScale = window.innerWidth < 800 ? 0.25 : 0.5;
+    // Scale down resolution significantly for physics to save performance/battery
+    const resScale = window.innerWidth < 800 ? 0.15 : 0.3;
     const w = Math.floor(canvas.width * resScale);
     const h = Math.floor(canvas.height * resScale);
 
@@ -398,7 +398,10 @@ const fluidGlow = (() => {
     blit(null); // Render to screen
 
     if (isActive) {
-        rafId = requestAnimationFrame(render);
+        // Throttle fluid simulation to 30 FPS to save massive amounts of battery
+        setTimeout(() => {
+            if (isActive) rafId = requestAnimationFrame(render);
+        }, 33);
     }
   }
 
