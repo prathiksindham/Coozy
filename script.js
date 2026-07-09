@@ -3263,7 +3263,7 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
     stage.classList.toggle("is-empty", !!msg);
     
     if (lyrBlob) {
-        if (msg === "Finding lyrics…") {
+        if (!!msg) {
             if (typeof initRive === "function") initRive();
             if (typeof riveListen === "function") riveListen(true);
             lyrBlob.style.display = "inline-block";
