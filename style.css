@@ -781,6 +781,7 @@ body.is-full .lyr-next {
   inset: 0;
   display: none;
   place-items: center;
+  place-content: center;
   text-align: center;
   padding: 0 24px;
   font-family: "Inter", system-ui, -apple-system, sans-serif;
@@ -788,6 +789,24 @@ body.is-full .lyr-next {
   font-weight: 500;
   color: rgba(255, 255, 255, 0.55);
   pointer-events: none;
+}
+.lyr-blob {
+  display: none;
+  position: relative;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  border-radius: 24px;
+}
+.lyr-blob canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 180px;
+  height: 180px;
+  display: block;
 }
 .lyrics-stage.is-empty .lyrics-status { display: grid; }
 .lyrics-stage.is-empty .lyrics-flow,

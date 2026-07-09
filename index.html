@@ -549,7 +549,10 @@
         <div class="lyr-next" id="lyrNext"></div>
       </div>
       <div class="lyrics-plain" id="lyricsPlain" hidden></div>
-      <div class="lyrics-status" id="lyricsStatus"></div>
+      <div class="lyrics-status" id="lyricsStatus">
+          <span class="vt-blob lyr-blob" id="lyrBlob" aria-hidden="true" style="display:none; transition: opacity 0.5s;"><canvas id="micRive"></canvas></span>
+          <span id="lyricsStatusText"></span>
+      </div>
     </div>
 
     <!-- Now-playing info, below the cassette frame. In lyrics mode this becomes the
@@ -687,9 +690,8 @@
     </div>
   </button>
 
-  <!-- Voice pill (blob + streaming text). No mic icon; fixed frame, text streams to fit. -->
+  <!-- Voice pill (text only). -->
   <div class="voice-toast" id="voiceToast" role="status" aria-live="polite" hidden>
-    <span class="vt-blob" aria-hidden="true"><canvas id="micRive"></canvas></span>
     <span class="vt-ic" id="voiceIcon" aria-hidden="true"></span>
     <span class="vt-text" id="voiceText">Listening…</span>
   </div>

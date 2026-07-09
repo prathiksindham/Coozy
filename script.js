@@ -3258,8 +3258,21 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
   }
 
   function setStatus(msg) {
-    if (status) status.textContent = msg || "";
+    if (statusText) statusText.textContent = msg || "";
+    else if (status) status.textContent = msg || "";
     stage.classList.toggle("is-empty", !!msg);
+    
+    if (lyrBlob) {
+        if (msg === "Finding lyrics…") {
+            if (typeof initRive === "function") initRive();
+            if (typeof riveListen === "function") riveListen(true);
+            lyrBlob.style.display = "inline-block";
+            requestAnimationFrame(() => lyrBlob.style.opacity = "1");
+        } else {
+            lyrBlob.style.opacity = "0";
+            setTimeout(() => { if (lyrBlob.style.opacity === "0") lyrBlob.style.display = "none"; }, 500);
+        }
+    }
   }
 
   function renderSynced(rows) {
