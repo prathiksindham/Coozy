@@ -623,10 +623,10 @@ def _piper_voice():
             _piper = PiperVoice.load(_TTS_MODEL)
         return _piper
 
-
 def tts_wav(text):
-    """Synthesize `text` to audio bytes (MP3 via gTTS, WAV via Piper as fallback).
-    Cached by content so replays are free."""
+    """Synthesize text to audio bytes.
+    Priority: ElevenLabs (human-quality neural) -> gTTS (fallback) -> Piper (local).
+    Cached by content hash so replays are instant."""
     key = hashlib.sha1(text.encode("utf-8")).hexdigest()[:20]
     hit = _tts_cache.get(key)
     if hit:
@@ -634,17 +634,50 @@ def tts_wav(text):
 
     data = None
 
-    # Primary: gTTS (Google Text-to-Speech) — works on any host, no model needed
-    try:
-        from gtts import gTTS
-        import io
-        buf = io.BytesIO()
-        gTTS(text=text, lang="en", slow=False).write_to_fp(buf)
-        data = buf.getvalue()
-    except Exception:
-        pass
+    # ── 1. ElevenLabs: industry-leading neural voice (Spotify/Netflix standard).
+    # Free tier: 10 000 chars/month. Key from elevenlabs.io (no card needed).
+    # ELEVENLABS_API_KEY  — set in Render env vars or persona/.env
+    # ELEVENLABS_VOICE_ID — optional; defaults to "Rachel" (warm, conversational)
+    xi_key = os.environ.get("ELEVENLABS_API_KEY", "")
+    if xi_key:
+        try:
+            import io
+            voice_id = os.environ.get("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
+            url = "https://api.elevenlabs.io/v1/text-to-speech/" + voice_id
+            payload = json.dumps({
+                "text": text[:2500],
+                "model_id": "eleven_turbo_v2_5",
+                "voice_settings": {"stability": 0.55, "similarity_boost": 0.80,
+                                   "style": 0.20, "use_speaker_boost": True},
+            }).encode()
+            req = urllib.request.Request(url, data=payload, headers={
+                "xi-api-key": xi_key,
+                "Content-Type": "application/json",
+                "Accept": "audio/mpeg",
+            })
+            with urllib.request.urlopen(req, timeout=15) as r:
+                buf = io.BytesIO()
+                while True:
+                    chunk = r.read(8192)
+                    if not chunk:
+                        break
+                    buf.write(chunk)
+                data = buf.getvalue()
+        except Exception:
+            data = None
 
-    # Fallback: local Piper neural TTS (only if installed with model)
+    # ── 2. gTTS: Google Translate TTS — free, works everywhere, sounds robotic but reliable
+    if not data:
+        try:
+            from gtts import gTTS
+            import io
+            buf = io.BytesIO()
+            gTTS(text=text, lang="en", slow=False).write_to_fp(buf)
+            data = buf.getvalue()
+        except Exception:
+            pass
+
+    # ── 3. Piper: local neural TTS — only works if model file is present
     if not data:
         try:
             import io, wave

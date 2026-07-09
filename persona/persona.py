@@ -12,7 +12,7 @@ explicit admission that the fact is missing).
 from . import llm
 from .taste import render_axes
 
-PERSONA_NAME = "Sable"   # rename freely; only used in the system prompt / member list later
+PERSONA_NAME = "Maya"   # rename freely; only used in the system prompt / member list later
 
 
 def build_system():

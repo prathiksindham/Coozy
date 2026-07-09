@@ -2801,16 +2801,34 @@ window.roomOnData = function (msg, fromId, fromName) {
   }
 };
 
-// ---- Sable's voice (free browser speech) + conversation loop ----
-var convoMode = false;                       // true = keep the mic looping after she replies
+// Maya's browser voice: prioritize enhanced/premium neural voices.
+// On macOS Chrome these are near-Siri quality; on Windows, Edge neural voices.
+// Ordered by perceived naturalness: Enhanced Apple > Google neural > standard.
+var convoMode = false;   // true = keep the mic looping after she replies
 let _sableVoice = null;
 function _pickVoice() {
   try {
     const vs = (window.speechSynthesis && window.speechSynthesis.getVoices()) || [];
     if (!vs.length) return null;
-    return vs.find((v) => /en[-_]US/i.test(v.lang) && /(Samantha|Ava|Allison|Joanna|Zoe|female)/i.test(v.name))
-      || vs.find((v) => /en[-_]US/i.test(v.lang))
-      || vs.find((v) => /^en/i.test(v.lang)) || vs[0];
+    // Tier 1: Apple Enhanced/Premium — best quality on macOS
+    const t1 = vs.find((v) => /en[-_]US/i.test(v.lang) &&
+      /(enhanced|premium)/i.test(v.name) &&
+      /(Ava|Samantha|Allison|Susan|Zoe|Nicky|Karen)/i.test(v.name));
+    if (t1) return t1;
+    // Tier 2: Any Enhanced voice in English
+    const t2 = vs.find((v) => /^en/i.test(v.lang) && /(enhanced|premium)/i.test(v.name));
+    if (t2) return t2;
+    // Tier 3: Known good voices by name
+    const t3 = vs.find((v) => /en[-_]US/i.test(v.lang) &&
+      /(Ava|Samantha|Allison|Joanna|Google US English|Microsoft Aria|Microsoft Jenny|Zira)/i.test(v.name));
+    if (t3) return t3;
+    // Tier 4: Any female-sounding en-US
+    const t4 = vs.find((v) => /en[-_]US/i.test(v.lang) && /(female|woman)/i.test(v.name));
+    if (t4) return t4;
+    // Tier 5: Any en-US
+    return vs.find((v) => /en[-_]US/i.test(v.lang))
+        || vs.find((v) => /^en/i.test(v.lang))
+        || vs[0];
   } catch (e) { return null; }
 }
 if ("speechSynthesis" in window) {
@@ -2831,7 +2849,7 @@ function _unlockSableAudio() {
 }
 function speakSable(text) {
   if (!text) return;
-  // Prefer the natural neural voice (server-side Piper); fall back to the
+  // Prefer the natural neural voice (ElevenLabs via server); fall back to the
   // browser voice if the server has no TTS or the audio can't play.
   try {
     window.speechSynthesis && window.speechSynthesis.cancel();
@@ -2840,7 +2858,7 @@ function speakSable(text) {
     const fallback = () => { if (!fell) { fell = true; duckAudio(false); browserSpeak(text); } };
     sablePillStream(text);                                // teal pill; words ready to stream
     _pacedReveal(_streamWords.length);                    // show words even if audio never plays
-    _sableAudio.onplay = () => { window.__sableSpeaking = true; document.body.classList.add('sable-speaking'); duckAudio(true); streamFollowAudio(_sableAudio); };   // sync to voice if it plays
+    _sableAudio.onplay = () => { window.__sableSpeaking = true; document.body.classList.add('sable-speaking'); duckAudio(true); streamFollowAudio(_sableAudio); };
     _sableAudio.onended = () => { window.__sableSpeaking = false; document.body.classList.remove('sable-speaking'); duckAudio(false); streamRevealTo(_streamWords.length); _maybeContinueConvo(); };
     _sableAudio.onerror = () => { window.__sableSpeaking = false; document.body.classList.remove('sable-speaking'); fallback(); };
     _sableAudio.src = "/api/tts?text=" + encodeURIComponent(text.slice(0, 1200));
@@ -2856,7 +2874,9 @@ function browserSpeak(text) {
     const u = new SpeechSynthesisUtterance(text);
     if (!_sableVoice) _sableVoice = _pickVoice();
     if (_sableVoice) u.voice = _sableVoice;
-    u.rate = 1.03; u.pitch = 1.0;
+    u.rate = 0.97;   // slightly slower = warmer, more natural delivery
+    u.pitch = 1.0;
+    u.volume = 1.0;
     u.onstart = () => { window.__sableSpeaking = true; document.body.classList.add('sable-speaking'); duckAudio(true); };
     u.onboundary = (e) => {                               // reveal words as the voice speaks them
       const idx = (typeof e.charIndex === "number") ? e.charIndex : 0;
