@@ -51,20 +51,15 @@ const fluidGlow = (() => {
     }
 
     void main() {
-      // Normalize coords based on aspect ratio
-      vec2 st = vUv;
-      st.x *= u_resolution.x / u_resolution.y;
+      // Calculate distance to nearest edge IN PHYSICAL PIXELS
+      vec2 pixelCoord = vUv * u_resolution;
+      float dx = min(pixelCoord.x, u_resolution.x - pixelCoord.x);
+      float dy = min(pixelCoord.y, u_resolution.y - pixelCoord.y);
+      float distPx = min(dx, dy);
       
-      // Calculate distance to nearest edge (0 to 0.5)
-      float dx = min(vUv.x, 1.0 - vUv.x);
-      float dy = min(vUv.y, 1.0 - vUv.y);
-      float distToEdge = min(dx, dy);
-      
-      // Make thinner on mobile (resolution width < 800)
-      float thickness = u_resolution.x < 800.0 ? 0.04 : 0.07;
-      
-      // Mask: 1.0 at edge, fading to 0.0 inwards
-      float mask = smoothstep(thickness, 0.0, distToEdge);
+      // Strict 48px border limit
+      float maxThickness = 48.0;
+      float mask = smoothstep(maxThickness, 0.0, distPx);
       
       // Early exit for pixels completely inside (optimization)
       if (mask <= 0.01) {
@@ -72,25 +67,30 @@ const fluidGlow = (() => {
          return;
       }
 
-      // Generate swirling fluid noise
-      vec3 p = vec3(st * 3.0, u_time * 0.4);
+      // Normalize coords for noise sampling to keep aspect ratio uniform
+      vec2 st = vUv;
+      st.x *= u_resolution.x / u_resolution.y;
+
+      // Generate highly turbulent fluid noise (domain warping)
+      vec3 p = vec3(st * 4.0, u_time * 0.3);
       
-      // Domain warping for fluid look
-      vec3 q = vec3(fbm(p + vec3(0.0)), fbm(p + vec3(5.2)), 0.0);
+      vec3 q = vec3(fbm(p), fbm(p + vec3(5.2, 1.3, 0.0)), 0.0);
       vec3 r = vec3(fbm(p + 4.0 * q + vec3(1.7, 9.2, 0.0)), fbm(p + 4.0 * q + vec3(8.3, 2.8, 0.0)), 0.0);
+      
+      // Use absolute value for sharp "ridges" like liquid/smoke
       float n = fbm(p + 4.0 * r);
+      n = smoothstep(-0.2, 0.8, n);
       
-      // Map noise [-1, 1] to [0, 1] and boost contrast significantly
-      n = smoothstep(-0.1, 0.6, n);
+      // 3-Tier Color Mixing for that rich, fluid shader look
+      vec3 darkTeal = vec3(0.02, 0.25, 0.15);     // Deep shadow
+      vec3 mainTeal = vec3(0.15, 0.90, 0.57);     // Coozy's teal
+      vec3 brightTeal = vec3(0.60, 1.00, 0.85);   // Liquid highlights
       
-      // Base color: Maya's teal green rgb(39, 229, 145) = (0.15, 0.9, 0.57)
-      vec3 color = vec3(0.15, 0.90, 0.57);
+      vec3 fluidColor = mix(darkTeal, mainTeal, smoothstep(0.1, 0.5, n));
+      fluidColor = mix(fluidColor, brightTeal, smoothstep(0.5, 0.9, n));
       
-      // High contrast mix with darker/lighter variants
-      vec3 fluidColor = mix(color * 0.1, color * 2.2, n);
-      
-      // Apply mask and an extra power curve for soft glowing edges
-      float alpha = mask * n * 2.0;
+      // Apply mask. Push the alpha higher so it's vibrant but strictly within 48px
+      float alpha = mask * n * 2.5;
       
       gl_FragColor = vec4(fluidColor * alpha, alpha);
     }
