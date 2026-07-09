@@ -1851,6 +1851,10 @@ const DUCK_LO = 0.1;
 function _musicShouldDuck() {
   return !!window.__sableSpeaking || (typeof listening !== "undefined" && listening) || _voiceDuck;
 }
+
+let _duckPausing = false;
+let _wasPlayingBeforeDuck = false;
+
 function applyMusicVolume() {
   const speaking = !!window.__sableSpeaking;
   const listeningMic = (typeof listening !== "undefined" && listening) || _voiceDuck;
@@ -1858,17 +1862,23 @@ function applyMusicVolume() {
   
   // State 1: Maya is speaking -> Pause completely
   if (speaking) {
+    if (!_duckPausing) {
+      _wasPlayingBeforeDuck = !paused; // capture state before YT event overwrites it
+      _duckPausing = true;
+    }
     try { if (window.ytPlayer && window.ytPlayer.pauseVideo) window.ytPlayer.pauseVideo(); } catch (e) {}
     try { if (audioEl && !audioEl.paused) audioEl.pause(); } catch (e) {}
     try { if (window.SP && window.SP.pause) window.SP.pause(); } catch (e) {}
   } 
-  // State 2 & 3: Not speaking -> Resume playing, but lower volume if mic is open
+  // State 2 & 3: Not speaking -> Resume playing if we were the ones who paused it
   else {
-    // Resume music if the UI play state says it should be playing
-    if (typeof paused !== "undefined" && !paused) {
-      try { if (window.ytPlayer && window.ytPlayer.playVideo) window.ytPlayer.playVideo(); } catch (e) {}
-      try { if (audioEl && audioEl.paused && window.audioSrcFor) { if(!audioEl.src) audioEl.src = audioSrcFor(DISCS[index]); audioEl.play().catch(()=>{}); } } catch (e) {}
-      try { if (window.SP && window.SP.resume) window.SP.resume(); } catch (e) {}
+    if (_duckPausing) {
+      _duckPausing = false;
+      if (_wasPlayingBeforeDuck) {
+        try { if (window.ytPlayer && window.ytPlayer.playVideo) window.ytPlayer.playVideo(); } catch (e) {}
+        try { if (audioEl && audioEl.paused && window.audioSrcFor) { if(!audioEl.src) audioEl.src = audioSrcFor(DISCS[index]); audioEl.play().catch(()=>{}); } } catch (e) {}
+        try { if (window.SP && window.SP.resume) window.SP.resume(); } catch (e) {}
+      }
     }
     // Set volume: Duck if listening, Full if idle
     const vol = listeningMic ? DUCK_LO : hi;
