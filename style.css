@@ -793,20 +793,24 @@ body.is-full .lyr-next {
 .lyr-blob {
   display: none;
   position: relative;
-  width: 320px;
-  height: 320px;
+  width: 460px;
+  height: 460px;
   margin-bottom: 24px;
   overflow: hidden;
-  border-radius: 160px;
+  border-radius: 230px;
+  background: transparent;
+  border: none;
 }
 .lyr-blob canvas {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 540px; /* zoomed in to crop out the extra white frame of the Rive artboard */
-  height: 540px;
+  width: 840px; /* zoomed well into the center so any white artboard frame is completely cropped out */
+  height: 840px;
   display: block;
+  background: transparent;
+  border: none;
 }
 /* Removed .lyrics-stage.is-empty .lyrics-status { display: grid; } */
 .lyrics-stage.is-empty .lyrics-flow,
