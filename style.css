@@ -665,6 +665,10 @@ body:not(.is-full) .nowplaying {
           mask-image: linear-gradient(to bottom, transparent 0, #000 24%, #000 76%, transparent 100%);
 }
 .lyrics-stage[hidden] { display: none; }
+/* non-full view: sit exactly at the center of the cassette playing frame */
+body:not(.is-full) .lyrics-stage {
+  top: calc(50% - var(--np-lift));
+}
 /* full view: sit exactly where the CD frame is (top: 40px), same size */
 body.is-full .lyrics-stage {
   top: 40px;
@@ -792,14 +796,25 @@ body.is-full .lyr-next {
 }
 .lyr-blob {
   display: none;
-  position: relative;
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 460px;
   height: 460px;
-  margin-bottom: 24px;
+  margin: 0;
   overflow: hidden;
   border-radius: 230px;
   background: transparent;
   border: none;
+  mix-blend-mode: multiply !important;
+  pointer-events: none;
+  z-index: 25;
+}
+body:not(.is-full) .lyr-blob {
+  top: calc(50% - var(--np-lift));
+}
+body.is-full .lyr-blob {
+  top: 270px;
 }
 .lyr-blob canvas {
   position: absolute;
@@ -811,8 +826,19 @@ body.is-full .lyr-next {
   display: block;
   background: transparent;
   border: none;
+  mix-blend-mode: multiply !important;
 }
-/* Removed .lyrics-stage.is-empty .lyrics-status { display: grid; } */
+#lyricsStatusText {
+  position: relative;
+  z-index: 5;
+  margin-top: 200px;
+  pointer-events: none;
+}
+.lyrics-stage.is-empty {
+  overflow: visible;
+  -webkit-mask-image: none;
+          mask-image: none;
+}
 .lyrics-stage.is-empty .lyrics-flow,
 .lyrics-stage.is-empty .lyrics-plain { display: none; }
 .lyrics-stage.is-plain .lyrics-flow { display: none; }
@@ -827,6 +853,10 @@ body.is-full .lyr-next {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s ease;
+}
+.player.show-lyrics,
+.player:has(#lyrBlob[style*="inline-block"]) {
+  perspective: none !important;
 }
 .player.show-lyrics .lyrics-stage { opacity: 1; }
 

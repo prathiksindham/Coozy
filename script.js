@@ -374,15 +374,28 @@ function fxAscii(src, S, t, out) {
   }
 }
 
+let _cachedOriginalData = null;
+let _cachedOriginalKey = null;
+let _reusableImageData = null;
+
 function applyEffect(img, out, effect, t = 0, S = 640) {
-  const iw = img.naturalWidth || S, ih = img.naturalHeight || S;
-  let sw, sh, sx, sy;
-  if (iw >= ih) { sw = sh = ih; sx = (iw - sw) / 2; sy = 0; }
-  else { sw = sh = iw; sx = 0; sy = (ih - sh) / 2; }
-  if (fxTmp.width !== S || fxTmp.height !== S) { fxTmp.width = S; fxTmp.height = S; }
-  fxTmpCtx.clearRect(0, 0, S, S);
-  fxTmpCtx.drawImage(img, sx, sy, sw, sh, 0, 0, S, S);
-  const id = fxTmpCtx.getImageData(0, 0, S, S);  // throws if cross-origin tainted
+  const cacheKey = (img.src || "") + "_" + S;
+  let id;
+  if (_cachedOriginalKey !== cacheKey || !_cachedOriginalData) {
+    const iw = img.naturalWidth || S, ih = img.naturalHeight || S;
+    let sw, sh, sx, sy;
+    if (iw >= ih) { sw = sh = ih; sx = (iw - sw) / 2; sy = 0; }
+    else { sw = sh = iw; sx = 0; sy = (ih - sh) / 2; }
+    if (fxTmp.width !== S || fxTmp.height !== S) { fxTmp.width = S; fxTmp.height = S; }
+    fxTmpCtx.clearRect(0, 0, S, S);
+    fxTmpCtx.drawImage(img, sx, sy, sw, sh, 0, 0, S, S);
+    _cachedOriginalData = fxTmpCtx.getImageData(0, 0, S, S);  // throws if cross-origin tainted
+    _cachedOriginalKey = cacheKey;
+    _reusableImageData = new ImageData(S, S);
+  }
+  
+  _reusableImageData.data.set(_cachedOriginalData.data);
+  id = _reusableImageData;
   const d = id.data;
   if (effect === "ascii") { fxAscii(d, S, t, out); return; }   // draws glyphs, not pixels
   if (effect === "dither") fxDither(d, S, t);
@@ -471,7 +484,7 @@ function preloadArt(i) {
   raw.src = src;
 }
 
-function setEffect(fx) { currentEffect = fx; }   // the live loop reflects it instantly
+function setEffect(fx) { currentEffect = fx; if (typeof startFxLoop === "function") startFxLoop(); }
 
 /* Interaction energy: cursor movement speeds the motion up, then it decays */
 let fxEnergy = 0, fxTime = 0, fxPX = 0, fxPY = 0;
@@ -479,6 +492,7 @@ window.addEventListener("pointermove", (e) => {
   const dx = e.clientX - fxPX, dy = e.clientY - fxPY;
   fxPX = e.clientX; fxPY = e.clientY;
   fxEnergy = Math.min(2.5, fxEnergy + Math.hypot(dx, dy) * 0.012);
+  startFxLoop();
 });
 
 /* Live loop: re-skins the playing cassette every frame (motion + interaction) */
@@ -486,6 +500,11 @@ const FX_S = 300;                       // processing resolution (perf)
 let fxProcLast = performance.now(), fxClockLast = performance.now();
 let lastAppliedEffect = null;
 let lastAppliedArt = null;
+let fxRAF = null;
+
+function startFxLoop() {
+  if (!fxRAF) { fxClockLast = performance.now(); fxRAF = requestAnimationFrame(fxLoop); }
+}
 
 function fxLoop(now) {
   const dt = Math.min((now - fxClockLast) / 1000, 0.05); fxClockLast = now;
@@ -493,33 +512,39 @@ function fxLoop(now) {
   fxTime += (0.35 + fxEnergy * 2.6) * dt;         // baseline drift + interaction boost
 
   if (document.hidden) {
-      setTimeout(() => requestAnimationFrame(fxLoop), 500);
-      return;
+    fxRAF = null;
+    setTimeout(startFxLoop, 500);
+    return;
   }
 
   const disc = discs[index];
-  if (!disc) { requestAnimationFrame(fxLoop); return; }
+  if (!disc) { fxRAF = null; return; }
   
+  if (currentEffect === "none") { 
+    if (lastAppliedEffect !== "none") {
+      disc.classList.remove("has-fx"); 
+      lastAppliedEffect = "none";
+    }
+    fxRAF = null;
+    return; 
+  }
+
   const artUrl = DISCS[index].art;
   const img = artImgCache[artUrl];
 
-  if (fxEnergy < 0.05 && currentEffect === lastAppliedEffect && artUrl === lastAppliedArt) {
-      setTimeout(() => requestAnimationFrame(fxLoop), 100);
-      return;
-  }
-  
-  requestAnimationFrame(fxLoop);
+  const isIdle = (fxEnergy < 0.01 && currentEffect === lastAppliedEffect && artUrl === lastAppliedArt);
+  const targetFPS = isIdle ? 100 : 33; // 10 fps idle, 30 fps active
 
-  if (now - fxProcLast < 33) return;              // cap heavy processing at ~30fps
+  if (now - fxProcLast < targetFPS) {
+    fxRAF = requestAnimationFrame(fxLoop);
+    return;
+  }
   fxProcLast = now;
-
-  if (currentEffect === "none") { 
-    disc.classList.remove("has-fx"); 
-    lastAppliedEffect = "none";
-    return; 
-  }
   
-  if (!img || !img.complete || !img.naturalWidth) return;
+  if (!img || !img.complete || !img.naturalWidth) {
+    fxRAF = requestAnimationFrame(fxLoop);
+    return;
+  }
   
   try {
     applyEffect(img, disc.querySelector(".disc__dcanvas"), currentEffect, fxTime, FX_S);
@@ -527,8 +552,9 @@ function fxLoop(now) {
     lastAppliedEffect = currentEffect;
     lastAppliedArt = artUrl;
   } catch (e) { /* cross-origin tainted -> plain art */ }
+  fxRAF = requestAnimationFrame(fxLoop);
 }
-requestAnimationFrame(fxLoop);
+startFxLoop();
 
 // Crop blank borders off every cassette cover up front (playing and non-playing)
 for (let i = 0; i < discs.length; i++) preloadArt(i);
@@ -549,11 +575,15 @@ let paused = true;         // disc spins only while audio is playing
 let full = false;          // full-screen now-playing view
 
 let lastT = performance.now();
+let spinRAF = null;
+function startSpinLoop() {
+  if (!spinRAF) { lastT = performance.now(); spinRAF = requestAnimationFrame(tick); }
+}
 function tick(now) {
   if (document.hidden) {
-      lastT = now;
-      setTimeout(() => requestAnimationFrame(tick), 500);
-      return;
+    spinRAF = null;
+    setTimeout(startSpinLoop, 500);
+    return;
   }
 
   const dt = Math.min((now - lastT) / 1000, 0.05);
@@ -565,18 +595,23 @@ function tick(now) {
     const target = seated ? SPIN_TARGET : 0;
     const k = seated ? K_UP : K_DOWN;
     vel[i] += (target - vel[i]) * Math.min(k * dt, 1);   // inertial approach
-    if (Math.abs(vel[i]) > 0.001) moving = true;
-    angle[i] += vel[i] * dt;
-    spinEls[i].style.transform = `rotate(${angle[i].toFixed(4)}rad)`;
+    if (Math.abs(vel[i]) > 0.001 || target !== 0) {
+      moving = true;
+      angle[i] += vel[i] * dt;
+      if (spinEls[i]) spinEls[i].style.transform = `rotate(${angle[i].toFixed(4)}rad)`;
+    } else if (vel[i] !== 0) {
+      vel[i] = 0;
+      if (spinEls[i]) spinEls[i].style.transform = `rotate(${angle[i].toFixed(4)}rad)`;
+    }
   }
   
   if (!moving && paused) {
-      setTimeout(() => requestAnimationFrame(tick), 100);
+    spinRAF = null;
   } else {
-      requestAnimationFrame(tick);
+    spinRAF = requestAnimationFrame(tick);
   }
 }
-requestAnimationFrame(tick);
+startSpinLoop();
 
 /* ---------- Geometry ---------- */
 function geom() {
@@ -774,6 +809,7 @@ let currentSource = localStorage.getItem("musicSource") || "youtube";
 function setPlayIcon(playing) {
   ctrlPlay?.setAttribute("aria-pressed", String(playing));
   if (typeof refreshPlayingWave === "function") refreshPlayingWave();   // sync the search-list wave
+  if (typeof startSpinLoop === "function") startSpinLoop();
 }
 function resetProgress() {
   if (fillEl) fillEl.style.width = "0%";
@@ -903,31 +939,35 @@ function syncSong() {
 function togglePlay() {
   if (tempSong) {              // controlling a preview
     if (!ytReady || !yt) return;
-    if (yt.getPlayerState() === YT.PlayerState.PLAYING) yt.pauseVideo();
+    if (yt.getPlayerState() === YT.PlayerState.PLAYING) { wantPlay = false; yt.pauseVideo(); }
     else { wantPlay = true; yt.playVideo(); }
     return;
   }
   const d = DISCS[index];
   const eng = engineFor(d);
+
+  // Synchronously lock our intent and UI right now so pausing is instant and never fights race conditions
+  const willPlay = paused;
+  wantPlay = willPlay;
+  paused = !willPlay;
+  if (typeof setPlayIcon === "function") setPlayIcon(willPlay);
+
   if (eng === "audio") {
-    if (audioEl.paused) {
-      wantPlay = true;
+    if (willPlay) {
       if (!audioEl.src) { audioEl.src = audioSrcFor(d); audioEl.load(); }
       audioEl.play().catch(() => {});
     } else {
-      audioEl.pause();
+      try { audioEl.pause(); } catch (e) {}
     }
   } else if (eng === "yt") {
     const id = ytId(d.yt);
-    if (!ytReady || !yt || !id) { paused = !paused; setPlayIcon(!paused); return; }
-    if (yt.getPlayerState() === YT.PlayerState.PLAYING) yt.pauseVideo();
-    else { wantPlay = true; yt.playVideo(); }
+    if (!ytReady || !yt || !id) return;
+    if (willPlay) { try { yt.playVideo(); } catch (e) {} }
+    else { try { yt.pauseVideo(); } catch (e) {} }
   } else if (eng === "spotify") {
-    if (!window.SP) { paused = !paused; setPlayIcon(!paused); return; }
-    wantPlay = true;
-    window.SP.toggle(d.spotify);
-  } else {
-    paused = !paused; setPlayIcon(!paused);   // no source: just toggle the spin
+    if (!window.SP) return;
+    if (willPlay) { try { window.SP.toggle(d.spotify); } catch (e) {} }
+    else { try { window.SP.pause(); } catch (e) {} }
   }
   if (!applyingRemote && typeof roomBroadcastSoon === "function") roomBroadcastSoon();
 }
@@ -956,7 +996,7 @@ if (audioEl) {
   audioEl.addEventListener("play",  () => { paused = false; wantPlay = true; setPlayIcon(true); audioRetries = 0; });
   audioEl.addEventListener("playing", () => { audioRetries = 0; });   // real audio started
   audioEl.addEventListener("pause", () => {
-    if (wantPlay) {
+    if (wantPlay && !paused) {
       audioEl.play().catch(() => {});
     } else {
       paused = true; setPlayIcon(false);
@@ -1154,6 +1194,7 @@ function onUp() {
   // Flick imparts angular momentum to the disc that seats in the case.
   const impulse = Math.max(-6, Math.min(6, -pointerVX * 0.004));
   vel[index] += impulse;
+  if (typeof startSpinLoop === "function") startSpinLoop();
   dragOffset = 0;
   render();
 }
@@ -1764,25 +1805,34 @@ function initRive() {
     riveInst = new rive.Rive({
       src: "mic-listen.riv",
       canvas,
-      autoplay: true,                                       // play + render continuously (looping orb)
+      autoplay: true,
       onLoad: () => {
-        micBtn.classList.add("has-rive");                  // CSS then shows Rive instead of the ripple
-        if (voiceToast) voiceToast.classList.add("has-blob");  // blob is the chip icon in every state
-        try { riveInst.volume = 0; } catch (e) {}          // mute any audio in the .riv
+        micBtn.classList.add("has-rive");
+        if (voiceToast) voiceToast.classList.add("has-blob");
+        try { riveInst.volume = 0; } catch (e) {}
         try { const sms = riveInst.stateMachineNames || []; riveSM = sms[0] || null; } catch (e) { riveSM = null; }
         try { riveInst.resizeDrawingSurfaceToCanvas(); } catch (e) {}
-        try { if (riveSM) riveInst.play(riveSM); else riveInst.play(); } catch (e) {}
+        const visible = (voiceToast && voiceToast.classList.contains("is-show"));
+        if (visible) {
+          try { if (riveSM) riveInst.play(riveSM); else riveInst.play(); } catch (e) {}
+        } else {
+          try { riveInst.pause(); } catch (e) {}
+        }
       },
       onLoadError: () => { riveInst = null; },
     });
   } catch (e) { riveInst = null; }
 }
-// When the chip appears the canvas becomes visible -> resize the surface and (re)start the SM
+// When the chip or blob appears the canvas becomes visible -> resize the surface and (re)start the SM; when hidden, pause
 function riveListen(on) {
-  if (!riveInst || !on) return;
+  if (!riveInst) return;
   requestAnimationFrame(() => {
-    try { riveInst.resizeDrawingSurfaceToCanvas(); } catch (e) {}
-    try { if (riveSM) riveInst.play(riveSM); else riveInst.play(); } catch (e) {}
+    if (on) {
+      try { riveInst.resizeDrawingSurfaceToCanvas(); } catch (e) {}
+      try { if (riveSM) riveInst.play(riveSM); else riveInst.play(); } catch (e) {}
+    } else {
+      try { riveInst.pause(); } catch (e) {}
+    }
   });
 }
 // Rive is initialised lazily on the first chip show (so the canvas has a real size).
@@ -1826,9 +1876,12 @@ function vtRevealTick() {
   vtScrollTo(line, true);
 }
 function vtPoll() {                                    // fly off chars as they reach the left edge
-  voiceText.__raf = requestAnimationFrame(vtPoll);
   const line = voiceText.querySelector(".vt-line");
-  if (!line || !line.firstChild) return;
+  if (!line || !line.firstChild || (!voiceText.__timer && (!voiceToast || !voiceToast.classList.contains("is-show")))) {
+    voiceText.__raf = null;
+    return;
+  }
+  voiceText.__raf = requestAnimationFrame(vtPoll);
   const pr = voiceText.getBoundingClientRect();
   let guard = 0;
   while (line.firstChild && guard++ < 40) {
@@ -1853,6 +1906,7 @@ function flowTranscript(msg) {
   else voiceText.__queue = (voiceText.__queue || []).concat(msg.slice(prev.length).split(""));
   voiceText.__target = msg;
   if (!voiceText.__timer) voiceText.__timer = setInterval(vtRevealTick, 32);
+  vtStartPoll();
 }
 function showVoice(msg, icon, fly) {
   if (!voiceToast) return;
@@ -2208,11 +2262,11 @@ function handleVoiceCommand(raw) {
 
   // Playback commands (short imperatives — only when NOT a question). Each one
   // speaks a canned confirmation (no AI) so Maya talks back in her own voice.
-  if (/^(pause|stop|be quiet|shut up)\b/.test(t)) { if (!paused) togglePlay(); sayCanned(_pick(["Paused.", "Okay, paused.", "Holding it there."])); cmd(); return; }
-  if (/^(resume|continue|unpause|play)$/.test(t)) { if (paused) togglePlay(); sayCanned(_pick(["Playing.", "Back on.", "Here we go."])); cmd(); return; }
-  if (/^(next|skip)\b/.test(t)) { next(); sayCanned(_pick(["Next up.", "Skipping ahead.", "Okay, next one."])); cmd(); return; }
-  if (/^(previous|go back|last song)\b/.test(t)) { prev(); sayCanned(_pick(["Going back.", "Previous track.", "Back one."])); cmd(); return; }
-  if (/^(like|favou?rite)\b/.test(t)) { voiceAddToPlaylist(null); sayCanned(_pick(["Added to your likes.", "Liked it.", "Saved."])); cmd(); return; }
+  if (/(pause|stop playing|shut up)\b/i.test(t)) { if (!paused) togglePlay(); sayCanned(_pick(["Paused.", "Okay, paused.", "Holding it there."])); cmd(); return; }
+  if (/(resume|continue|unpause|^play$)\b/i.test(t)) { if (paused) togglePlay(); sayCanned(_pick(["Playing.", "Back on.", "Here we go."])); cmd(); return; }
+  if (/(next song|skip)\b/i.test(t)) { next(); sayCanned(_pick(["Next up.", "Skipping ahead.", "Okay, next one."])); cmd(); return; }
+  if (/(previous song|go back|last song)\b/i.test(t)) { prev(); sayCanned(_pick(["Going back.", "Previous track.", "Back one."])); cmd(); return; }
+  if (/(like this|favo[u]?rite)\b/i.test(t)) { voiceAddToPlaylist(null); sayCanned(_pick(["Added to your likes.", "Liked it.", "Saved."])); cmd(); return; }
   if (/^add\b/.test(t) && /(playlist|list|liked|to )/.test(t)) {
     let name = null;
     const m = t.match(/add (?:this|it|the song|current song)?\s*(?:to)?\s*(?:my |the )?(.+?)(?:\s*playlist)?$/);
@@ -2288,8 +2342,8 @@ function soloTalkToSable(text) {
       return;
     }
     if (d && d.ok && d.text) speakSable(d.text);          // chip teal + voice + reopen mic
-    else convoSableNote(d && d.note ? d.note : "Sable couldn't respond.");
-  }).catch(() => convoSableNote("Couldn't reach Sable."));
+    else { convoSableNote(d && d.note ? d.note : "Sable couldn't respond."); speakSable(_pick(["I'm sorry, I'm having trouble reaching the server right now.", "I couldn't connect just now, give me a second.", "My connection seems to be down at the moment."]), true); }
+  }).catch(() => { convoSableNote("Couldn't reach Sable."); speakSable(_pick(["I'm sorry, I'm having trouble reaching the server right now.", "I couldn't connect just now, give me a second.", "My connection seems to be down at the moment."]), true); });
 }
 
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -2322,7 +2376,6 @@ function startListening() {
     micBtn && micBtn.setAttribute("aria-pressed", "true");
     duckAudio(true);                         // mic just turns teal (static) — no ripple animation
     playEarcon("start");                     // audible "I'm listening" cue (Alexa/Google style)
-    if (voiceToast) voiceToast.classList.add("listening"); // teal glow on chip
     youPillStream(); riveListen(true);       // show the blob + morph pill (words appear as you speak)
     convoClearSable();
     noSpeechT = setTimeout(finish, NOSPEECH_MS);   // nothing said at all -> close quietly
@@ -2915,7 +2968,7 @@ function _unlockSableAudio() {
     if (p && p.then) p.then(() => { _sableUnlocked = true; }).catch(() => {});
   } catch (e) {}
 }
-function speakSable(text) {
+function speakSable(text, isError = false) {
   if (!text) return;
   // Prefer the natural neural voice (ElevenLabs via server); fall back to the
   // browser voice if the server has no TTS or the audio can't play.
@@ -2923,18 +2976,18 @@ function speakSable(text) {
     window.speechSynthesis && window.speechSynthesis.cancel();
     if (!_sableAudio) _sableAudio = new Audio();
     let fell = false;
-    const fallback = () => { if (!fell) { fell = true; duckAudio(false); browserSpeak(text); } };
+    const fallback = () => { if (!fell) { fell = true; duckAudio(false); browserSpeak(text, isError); } };
     sablePillStream(text);                                // teal pill; words ready to stream
     _pacedReveal(_streamWords.length);                    // show words even if audio never plays
-    _sableAudio.onplay = () => { window.__sableSpeaking = true; document.body.classList.add('sable-speaking'); if(window.fluidGlow) window.fluidGlow.start(); duckAudio(true); streamFollowAudio(_sableAudio); };
-    _sableAudio.onended = () => { window.__sableSpeaking = false; document.body.classList.remove('sable-speaking'); if(window.fluidGlow) window.fluidGlow.stop(); duckAudio(false); streamRevealTo(_streamWords.length); _maybeContinueConvo(); };
-    _sableAudio.onerror = () => { window.__sableSpeaking = false; document.body.classList.remove('sable-speaking'); if(window.fluidGlow) window.fluidGlow.stop(); fallback(); };
+    _sableAudio.onplay = () => { window.__sableSpeaking = true; if (isError) document.body.classList.add('sable-speaking'); duckAudio(true); streamFollowAudio(_sableAudio); };
+    _sableAudio.onended = () => { window.__sableSpeaking = false; if (isError) document.body.classList.remove('sable-speaking'); duckAudio(false); streamRevealTo(_streamWords.length); _maybeContinueConvo(); };
+    _sableAudio.onerror = () => { window.__sableSpeaking = false; if (isError) document.body.classList.remove('sable-speaking'); fallback(); };
 
     _sableAudio.src = "/api/tts?text=" + encodeURIComponent(text.slice(0, 1200));
     _sableAudio.play().catch(fallback);
-  } catch (e) { browserSpeak(text); }
+  } catch (e) { browserSpeak(text, isError); }
 }
-function browserSpeak(text) {
+function browserSpeak(text, isError = false) {
   if (!("speechSynthesis" in window) || !text) return;
   try {
     window.speechSynthesis.cancel();
@@ -2946,13 +2999,13 @@ function browserSpeak(text) {
     u.rate = 0.97;   // slightly slower = warmer, more natural delivery
     u.pitch = 1.0;
     u.volume = 1.0;
-    u.onstart = () => { window.__sableSpeaking = true; document.body.classList.add('sable-speaking'); if(window.fluidGlow) window.fluidGlow.start(); duckAudio(true); };
+    u.onstart = () => { window.__sableSpeaking = true; if (isError) document.body.classList.add('sable-speaking'); duckAudio(true); };
     u.onboundary = (e) => {                               // reveal words as the voice speaks them
       const idx = (typeof e.charIndex === "number") ? e.charIndex : 0;
       streamRevealTo(text.slice(0, idx).trim().split(/\s+/).filter(Boolean).length + 1);
     };
-    u.onend = () => { window.__sableSpeaking = false; document.body.classList.remove('sable-speaking'); if(window.fluidGlow) window.fluidGlow.stop(); duckAudio(false); streamRevealTo(_streamWords.length); _maybeContinueConvo(); };
-    u.onerror = () => { window.__sableSpeaking = false; document.body.classList.remove('sable-speaking'); if(window.fluidGlow) window.fluidGlow.stop(); duckAudio(false); };
+    u.onend = () => { window.__sableSpeaking = false; if (isError) document.body.classList.remove('sable-speaking'); duckAudio(false); streamRevealTo(_streamWords.length); _maybeContinueConvo(); };
+    u.onerror = () => { window.__sableSpeaking = false; if (isError) document.body.classList.remove('sable-speaking'); duckAudio(false); };
     window.speechSynthesis.speak(u);
   } catch (e) {}
 }
@@ -3041,6 +3094,7 @@ function youPillWords(text) {
   _streamWords = w; _units = _mkUnits(w);
   if (_mCur > _units.length - 1) _mCur = Math.max(-1, _units.length - 1);
   _targetN = w.length;
+  startMLoop();
 }
 // Status pills (Searching…, ▶ now playing, Paused…) use the same two-word morph.
 function pillStreamText(text, sable) {
@@ -3048,6 +3102,7 @@ function pillStreamText(text, sable) {
   _streamWords = (text || "").trim().split(/\s+/).filter(Boolean);
   _units = _mkUnits(_streamWords);
   _targetN = _streamWords.length;
+  startMLoop();
 }
 // how many word-groups the voice has fully reached (all of a group's words revealed)
 function _targetUnits() {
@@ -3074,16 +3129,22 @@ function _showSharp(txt) {
   _mLayers.m1.style.filter = "none"; _mLayers.m1.style.opacity = "1";
   _mLayers.m2.style.opacity = "0";
 }
+function startMLoop() {
+  if (!_morphRAF && _mLayers) { _mLast = performance.now(); _morphRAF = requestAnimationFrame(_mLoop); }
+}
 function _mLoop(now) {
-  _morphRAF = requestAnimationFrame(_mLoop);
+  if (!_mLayers || document.hidden) { _morphRAF = null; return; }
   const dt = Math.min((now - _mLast) / 1000, 0.05); _mLast = now;
-  if (!_mLayers) return;
   const tu = _targetUnits();
   if (_mCur < 0) {                               // reveal the first pair once the voice reaches it
     if (tu >= 1) { _mCur = 0; _showSharp(_units[0]); _mHold = 0; }
-    return;
+    else { _morphRAF = requestAnimationFrame(_mLoop); return; }
   }
   const hasNext = _mCur + 1 < tu;
+  if (!_mMorphing && !hasNext) {
+    _morphRAF = null;
+    return;
+  }
   const backlog = tu - 1 - _mCur;
   const morphTime = backlog > 1 ? Math.max(0.28, MORPH_TIME / backlog) : MORPH_TIME;
   const holdTime  = backlog > 1 ? 0 : HOLD_TIME;
@@ -3094,16 +3155,20 @@ function _mLoop(now) {
       _mLayers.m1.textContent = _units[_mCur];
       _mLayers.m2.textContent = _units[_mCur + 1];
       _setMorph(_mFrac);
+    } else {
+      _morphRAF = null;
+      return;
     }
-    return;
   }
   _mFrac += dt / morphTime;
   if (_mFrac >= 1) { _mCur++; _mMorphing = false; _mHold = 0; _showSharp(_units[_mCur]); }
   else _setMorph(_mFrac);
+  if (!_mMorphing && _mCur >= tu - 1) { _morphRAF = null; return; }
+  _morphRAF = requestAnimationFrame(_mLoop);
 }
 // Voice progress -> how many words revealed. Monotonic so the paced fallback and the audio
 // follower can both drive it without ever going backwards within one message.
-function streamRevealTo(n) { _targetN = Math.max(_targetN, Math.max(0, Math.min(n, _streamWords.length))); }
+function streamRevealTo(n) { _targetN = Math.max(_targetN, Math.max(0, Math.min(n, _streamWords.length))); startMLoop(); }
 // Reveal words on an estimated speech cadence — the caption shows even if TTS audio is
 // blocked (autoplay) or its events never fire. If the audio does play, streamFollowAudio
 // takes over the same _audioRAF handle and syncs to real playback time.
@@ -3131,8 +3196,12 @@ function statusPillHide(delay) {
   clearTimeout(voiceHideTimer);
   voiceHideTimer = setTimeout(() => {
     voiceToast.classList.remove("is-show");
+    if (typeof riveListen === "function") riveListen(false);
     setTimeout(() => {
-      if (!voiceToast.classList.contains("is-show")) { voiceToast.hidden = true; voiceToast.classList.remove("sable"); }
+      if (!voiceToast.classList.contains("is-show")) {
+        voiceToast.hidden = true; voiceToast.classList.remove("sable");
+        if (typeof streamStop === "function") streamStop();
+      }
     }, 360);
   }, delay == null ? 1200 : delay);
 }
@@ -3197,7 +3266,7 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
   const plainEl = document.getElementById("lyricsPlain");
   const status = document.getElementById("lyricsStatus");
   const statusText = document.getElementById("lyricsStatusText");
-  const lyrBlob = document.getElementById("lyrBlob");
+
   const morphEl = curEl ? curEl.querySelector(".lyr-morph") : null;
   const m1 = morphEl ? morphEl.querySelector(".m1") : null;
   const m2 = morphEl ? morphEl.querySelector(".m2") : null;
@@ -3280,18 +3349,6 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
     if (statusText) statusText.textContent = msg || "";
     else if (status) status.textContent = msg || "";
     stage.classList.toggle("is-empty", !!msg);
-    
-    if (lyrBlob) {
-        if (!!msg) {
-            if (typeof initRive === "function") initRive();
-            if (typeof riveListen === "function") riveListen(true);
-            lyrBlob.style.display = "inline-block";
-            requestAnimationFrame(() => lyrBlob.style.opacity = "1");
-        } else {
-            lyrBlob.style.opacity = "0";
-            setTimeout(() => { if (lyrBlob.style.opacity === "0") lyrBlob.style.display = "none"; }, 500);
-        }
-    }
   }
 
   function renderSynced(rows) {
@@ -3379,8 +3436,12 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
   }
   function tick() {
     if (!open) return;
+    if (document.hidden || (typeof paused !== 'undefined' && paused)) {
+      setTimeout(() => { if (open) raf = requestAnimationFrame(tick); }, 300);
+      return;
+    }
     highlight(false);
-    raf = requestAnimationFrame(tick);
+    setTimeout(() => { if (open) raf = requestAnimationFrame(tick); }, 80);
   }
 
   // ---- open / close -------------------------------------------------------
@@ -3407,6 +3468,9 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
     player.classList.remove("show-lyrics");
     btn.setAttribute("aria-pressed", "false");
     stage.setAttribute("aria-hidden", "true");
+    if (typeof riveListen === "function" && (!voiceToast || !voiceToast.classList.contains("is-show"))) {
+      riveListen(false);
+    }
     setTimeout(() => { if (!open) stage.hidden = true; }, 420);
   }
   function toggle() { open ? closeLyrics() : openLyrics(); }
