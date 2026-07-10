@@ -996,6 +996,110 @@ body.is-full .stage-bg { opacity: 1; }
 .fx-opt.is-active { color: #fff; }
 .fx-opt.is-active::after { content: "✓"; font-size: 12px; color: #fff; }
 
+/* ---------------- Falling Hearts webcam effect ---------------- */
+.hearts-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #000;
+  animation: hearts-fade 0.25s ease;
+}
+@keyframes hearts-fade { from { opacity: 0; } }
+.hearts-btn-ic { width: 24px; height: 24px; display: block; }
+/* The overlay is opaque, but the compositor still repaints the glassy
+   (backdrop-filter) app layers under it on every camera frame, which tanks
+   the frame rate. Hide the app while the effect is open; audio keeps playing. */
+body.hearts-active > :not(.hearts-overlay) { visibility: hidden; }
+.hearts-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);   /* selfie mirror */
+}
+.hearts-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.hearts-close {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  /* no backdrop-filter here: blurring over a live video layer is expensive */
+  background: rgba(20, 22, 28, 0.72);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+.hearts-close:hover { background: rgba(40, 44, 54, 0.85); border-color: rgba(255, 255, 255, 0.3); }
+.hearts-close:active { transform: scale(0.92); }
+.hearts-status {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: min(420px, 80vw);
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: rgba(24, 26, 32, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  font: 500 14px/1.5 "Inter", system-ui, sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+.hearts-status[hidden], .hearts-status:empty { display: none; }
+
+.hearts-reset {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(20, 22, 28, 0.72);
+  color: #fff;
+  font: 600 14px/1 "Inter", system-ui, sans-serif;
+  cursor: pointer;
+  z-index: 6;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+.hearts-reset:hover { background: rgba(40, 44, 54, 0.9); border-color: rgba(255, 255, 255, 0.3); }
+.hearts-reset:active { transform: translateX(-50%) scale(0.94); }
+
+/* Instagram-like heart pop: springy scale-in at the gesture point, hold,
+   then float up and fade. Fills half the screen. */
+.hearts-pop {
+  position: absolute;
+  width: 50vmin;
+  height: 50vmin;
+  margin: -25vmin 0 0 -25vmin;   /* center on the trigger point */
+  pointer-events: none;
+  z-index: 5;
+  filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.45));
+  transform-origin: center;
+  animation: hearts-pop 1.3s ease-out forwards;
+}
+@keyframes hearts-pop {
+  0%   { transform: scale(0)    translateY(0); opacity: 0; }
+  12%  { transform: scale(1.18) translateY(0); opacity: 1; }
+  28%  { transform: scale(0.92) translateY(0); }
+  44%  { transform: scale(1.06) translateY(0); }
+  58%  { transform: scale(1)    translateY(0); opacity: 1; }
+  100% { transform: scale(1)    translateY(-16vmin); opacity: 0; }
+}
+
 /* ---------------- Frame switcher (top-right, below the playlist icon) ---------------- */
 
 
