@@ -214,7 +214,42 @@ def itunes_cover(term):
 # [{t: seconds, text}] list so the client just highlights + scrolls.
 # ============================================================
 
-_LYR_CACHE = {}   # key -> parsed result (small in-memory cache)
+_LYR_CACHE = {}   # key -> parsed result
+_LYR_CACHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "lyrics_cache.json")
+_LYR_LOCK = threading.Lock()      # guards cache + in-flight bookkeeping
+_LYR_INFLIGHT = {}                # key -> threading.Event, set when the fetch finishes
+
+# lrclib.net answers in 7-12s on a good day and sometimes never (it's the
+# upstream that's slow — TCP/TLS connect takes 0.4s, first byte 7s+). The
+# clients abort at 20-25s, so the WHOLE lookup (lrclib + fallbacks) must fit
+# inside this budget or the user sees "couldn't reach lyrics server" for
+# lyrics that were actually on their way.
+_LYR_BUDGET_S = 16
+_LRCLIB_PHASE_S = 10
+
+def _lyr_cache_load():
+    """Warm the cache from disk — a song fetched once never pays the lrclib tax again."""
+    try:
+        with open(_LYR_CACHE_PATH, "r", encoding="utf-8") as f:
+            _LYR_CACHE.update(json.load(f))
+        print("[lyrics] cache: %d songs loaded" % len(_LYR_CACHE))
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        print("[lyrics] cache load failed:", e)
+
+def _lyr_cache_persist():
+    """Atomic write-through of the cache (called with _LYR_LOCK held)."""
+    try:
+        os.makedirs(os.path.dirname(_LYR_CACHE_PATH), exist_ok=True)
+        tmp = _LYR_CACHE_PATH + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(_LYR_CACHE, f, ensure_ascii=False)
+        os.replace(tmp, _LYR_CACHE_PATH)
+    except Exception as e:
+        print("[lyrics] cache save failed:", e)
+
+_lyr_cache_load()
 
 _LRC_RE = re.compile(r"\[(\d+):(\d+(?:\.\d+)?)\]")
 
@@ -234,37 +269,39 @@ def _parse_lrc(lrc):
     return out
 
 
-def _lrclib_fetch(url):
-    """Fetch a URL from lrclib.net, retrying on connection failures.
+def _lrclib_fetch(url, deadline):
+    """Fetch a URL from lrclib.net within a hard deadline.
 
-    The network path to lrclib.net can be flaky (intermittent connection-refused
-    and slow responses that still finish around 6-8s), so we use a generous
-    per-attempt timeout and several retries — a tight timeout was cutting off
-    responses that would otherwise have succeeded.
+    lrclib itself is the slow part (7-12s to first byte, occasionally never),
+    so every attempt's timeout is clamped to the time remaining in this
+    request's budget — the old open-ended retry ladder could grind for minutes
+    after every client had already given up.
     """
     req = urllib.request.Request(url, headers={
         "User-Agent": "retro-music-player (https://github.com/local/music)",
     })
     last_err = None
-    for attempt in range(5):
+    for attempt in range(2):
+        remaining = deadline - time.time()
+        if remaining < 1.5:
+            break
         try:
-            return urllib.request.urlopen(req, timeout=12).read().decode("utf-8", "replace")
+            return urllib.request.urlopen(req, timeout=min(9, remaining)).read().decode("utf-8", "replace")
         except urllib.error.HTTPError:
             raise  # don't retry HTTP errors (404 etc), only connection issues
         except Exception as e:
             last_err = e
-            time.sleep(0.5 * (attempt + 1))
-    raise last_err
+    raise last_err or TimeoutError("lrclib budget exhausted")
 
 
-def _lrclib_get(params):
+def _lrclib_get(params, deadline):
     url = "https://lrclib.net/api/get?" + urllib.parse.urlencode(params)
-    return json.loads(_lrclib_fetch(url))
+    return json.loads(_lrclib_fetch(url, deadline))
 
 
-def _lrclib_search(q):
+def _lrclib_search(q, deadline):
     url = "https://lrclib.net/api/search?" + urllib.parse.urlencode({"q": q})
-    arr = json.loads(_lrclib_fetch(url))
+    arr = json.loads(_lrclib_fetch(url, deadline))
     return arr if isinstance(arr, list) else []
 
 
@@ -283,10 +320,40 @@ def _clean_for_search(s):
 
 
 def fetch_lyrics(artist, title, duration=None):
-    """Return {synced:[{t,text}]|None, plain:str|None, found:bool, error:str|None}."""
+    """Return {synced:[{t,text}]|None, plain:str|None, found:bool, error:str|None}.
+
+    Coalesced: concurrent requests for the same song (the lyric view and the
+    camera lyrics effect both ask) share one upstream fetch instead of each
+    grinding lrclib on their own.
+    """
     key = (artist or "").lower().strip() + "|" + (title or "").lower().strip()
-    if key in _LYR_CACHE:
-        return _LYR_CACHE[key]
+    while True:
+        with _LYR_LOCK:
+            if key in _LYR_CACHE:
+                return _LYR_CACHE[key]
+            evt = _LYR_INFLIGHT.get(key)
+            if evt is None:
+                _LYR_INFLIGHT[key] = threading.Event()
+                break                      # we own the fetch
+        evt.wait(timeout=_LYR_BUDGET_S + 5)  # someone else is fetching; wait for them
+        with _LYR_LOCK:
+            if key in _LYR_CACHE:
+                return _LYR_CACHE[key]
+        if evt.is_set():                   # owner finished but result wasn't cacheable
+            break                          # (network error) — do our own attempt
+    try:
+        return _fetch_lyrics_uncached(key, artist, title, duration)
+    finally:
+        with _LYR_LOCK:
+            evt = _LYR_INFLIGHT.pop(key, None)
+        if evt:
+            evt.set()
+
+
+def _fetch_lyrics_uncached(key, artist, title, duration):
+    start = time.time()
+    lrclib_deadline = start + _LRCLIB_PHASE_S
+    budget_deadline = start + _LYR_BUDGET_S
 
     rec = None
     api_error = None
@@ -296,7 +363,7 @@ def fetch_lyrics(artist, title, duration=None):
         if duration:
             p["duration"] = int(float(duration))
         try:
-            rec = _lrclib_get(p)
+            rec = _lrclib_get(p, lrclib_deadline)
         except urllib.error.HTTPError as e:
             if e.code != 404:
                 api_error = "lrclib HTTP %d" % e.code
@@ -318,10 +385,10 @@ def fetch_lyrics(artist, title, duration=None):
         if ct and ct.lower() != (title or "").strip().lower():
             queries.append((ct + " " + _clean_for_search(artist)).strip())
         for q in queries:
-            if not q:
+            if not q or time.time() > lrclib_deadline - 1.5:
                 continue
             try:
-                hits = _lrclib_search(q)
+                hits = _lrclib_search(q, lrclib_deadline)
                 api_error = None       # search reached lrclib, so clear the get error
             except Exception as e:
                 hits = []
@@ -338,18 +405,18 @@ def fetch_lyrics(artist, title, duration=None):
     #    NB: these plain-text fallbacks are NOT cached — they're a best-effort
     #    substitute used when lrclib was unreachable, so we want to retry lrclib
     #    (for real *synced* lyrics) next time rather than pin the song to plain.
-    if not rec:
+    if not rec and time.time() < budget_deadline - 4:
         try:
-            plain_text = _yt_lyrics(artist, title)
+            plain_text = _yt_lyrics(artist, title, timeout=min(6, budget_deadline - time.time()))
             if plain_text:
                 return {"synced": None, "plain": plain_text, "found": True, "error": None}
         except Exception:
             pass
 
     # 4) Gemini AI fallback — when both lrclib and YouTube fail
-    if not rec:
+    if not rec and time.time() < budget_deadline - 3:
         try:
-            plain_text = _gemini_lyrics(artist, title)
+            plain_text = _gemini_lyrics(artist, title, timeout=min(9, budget_deadline - time.time()))
             if plain_text:
                 return {"synced": None, "plain": plain_text, "found": True, "error": None}
         except Exception:
@@ -358,24 +425,27 @@ def fetch_lyrics(artist, title, duration=None):
     if not rec:
         res = {"synced": None, "plain": None, "found": False, "error": api_error}
         if not api_error:
-            _LYR_CACHE[key] = res  # only cache true negatives, not network errors
-        return res
+            with _LYR_LOCK:
+                _LYR_CACHE[key] = res   # cache true negatives in memory only —
+        return res                      # lrclib may gain the song later
 
     synced = _parse_lrc(rec.get("syncedLyrics")) or None
     plain = rec.get("plainLyrics") or None
     res = {"synced": synced, "plain": plain, "found": bool(synced or plain), "error": None}
-    _LYR_CACHE[key] = res
+    with _LYR_LOCK:
+        _LYR_CACHE[key] = res
+        _lyr_cache_persist()            # real lrclib hits survive server restarts
     return res
 
 
-def _yt_lyrics(artist, title):
+def _yt_lyrics(artist, title, timeout=6):
     """Search YouTube for a lyrics video and extract lyrics from its description."""
     query = "%s %s lyrics" % (artist, title)
     # 1. Search YouTube for lyrics videos (reuses the same scraping as yt_search)
     url = "https://www.youtube.com/results?" + urllib.parse.urlencode(
         {"search_query": query, "sp": "EgIQAQ%3D%3D"})
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9"})
-    html = urllib.request.urlopen(req, timeout=12).read().decode("utf-8", "replace")
+    html = urllib.request.urlopen(req, timeout=timeout).read().decode("utf-8", "replace")
     m = re.search(r"var ytInitialData = (\{.*?\});</script>", html)
     if not m:
         m = re.search(r'ytInitialData"]\s*=\s*(\{.*?\});', html)
@@ -413,7 +483,7 @@ def _yt_lyrics(artist, title):
         vurl = "https://www.youtube.com/watch?v=" + vid
         vreq = urllib.request.Request(vurl, headers={"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9"})
         try:
-            vhtml = urllib.request.urlopen(vreq, timeout=12).read().decode("utf-8", "replace")
+            vhtml = urllib.request.urlopen(vreq, timeout=timeout).read().decode("utf-8", "replace")
         except Exception:
             continue
         pm = re.search(r"var ytInitialPlayerResponse\s*=\s*(\{.*?\});\s*(?:var|</)", vhtml)
@@ -471,7 +541,7 @@ def _extract_lyrics_from_desc(desc):
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text if len(text) > 30 else None
 
-def _gemini_lyrics(artist, title):
+def _gemini_lyrics(artist, title, timeout=9):
     """Ask Gemini for plain lyrics as a fallback when lrclib is unreachable."""
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if not api_key:
@@ -490,7 +560,7 @@ def _gemini_lyrics(artist, title):
     }).encode()
     req = urllib.request.Request(url, data=body,
                                 headers={"Content-Type": "application/json"})
-    resp = urllib.request.urlopen(req, timeout=15)
+    resp = urllib.request.urlopen(req, timeout=timeout)
     data = json.loads(resp.read().decode("utf-8", "replace"))
     text = (data.get("candidates") or [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
     text = text.strip()
