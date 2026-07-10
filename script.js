@@ -533,9 +533,9 @@ function fxLoop(now) {
   const img = artImgCache[artUrl];
 
   const isIdle = (fxEnergy < 0.01 && currentEffect === lastAppliedEffect && artUrl === lastAppliedArt);
-  const targetFPS = isIdle ? 100 : 33; // 10 fps idle, 30 fps active
+  const minFrameMs = isIdle ? 100 : 33; // 10 fps idle, 30 fps active
 
-  if (now - fxProcLast < targetFPS) {
+  if (now - fxProcLast < minFrameMs) {
     fxRAF = requestAnimationFrame(fxLoop);
     return;
   }
@@ -1113,7 +1113,7 @@ window.onYouTubeIframeAPIReady = function () {
 
 /* YouTube progress (local audio uses its own timeupdate) */
 setInterval(() => {
-  if (scrubbing) return;
+  if (scrubbing || document.hidden) return;   // progress bar isn't visible while hidden
   if (!tempSong && (engineFor(DISCS[index]) !== "yt" || !ytReady || !yt || !yt.getDuration)) return;
   if (tempSong && (!ytReady || !yt || !yt.getDuration)) return;
   let dur = 0, cur = 0;
@@ -2717,10 +2717,17 @@ plAddNewInput?.addEventListener("keydown", (e) => {
     im.src = src;
   }
 
+  let faviconLink = null;
   function setFaviconHref(url) {
-    let l = document.querySelector('link[rel="icon"]');
-    if (!l) { l = document.createElement("link"); l.rel = "icon"; document.head.appendChild(l); }
-    l.href = url;
+    if (!faviconLink || !faviconLink.isConnected) {
+      faviconLink = document.querySelector('link[rel="icon"]');
+      if (!faviconLink) {
+        faviconLink = document.createElement("link");
+        faviconLink.rel = "icon";
+        document.head.appendChild(faviconLink);
+      }
+    }
+    faviconLink.href = url;
   }
 
   function draw(angle) {
@@ -2745,11 +2752,13 @@ plAddNewInput?.addEventListener("keydown", (e) => {
     if (!caseReady) return;
     ensureArt();
     const now = performance.now();
-    const dt = Math.min((now - last) / 1000, 0.1);   // time-based -> constant speed
+    const dt = Math.min((now - last) / 1000, 0.2);   // time-based -> constant speed
     last = now;
     if (!paused) { angle += SPIN * dt; draw(angle); started = true; held = false; }
     else if (started && !held) { draw(angle); held = true; }       // one frame on pause
-  }, 33);                                    // ~30 fps for smooth motion
+  }, 125);                                   // 8 fps: every tick PNG-encodes the canvas
+                                             // (toDataURL) for a 16px tab icon, so keep
+                                             // the rate as low as the spin can hide
 })();
 
 /* ============================================================
