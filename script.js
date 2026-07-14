@@ -1011,6 +1011,15 @@ if (audioEl) {
       if (timeL) timeL.textContent = fmt(cur);
       if (timeR) timeR.textContent = fmt(dur);
     }
+    if (typeof window.highlightLyrics === "function") window.highlightLyrics(false);
+  });
+  audioEl.addEventListener("seeked", () => {
+    if (typeof window.highlightLyrics === "function") window.highlightLyrics(true);
+    if (typeof window.syncLyricsFlowSeek === "function") window.syncLyricsFlowSeek();
+  });
+  audioEl.addEventListener("seeking", () => {
+    if (typeof window.highlightLyrics === "function") window.highlightLyrics(true);
+    if (typeof window.syncLyricsFlowSeek === "function") window.syncLyricsFlowSeek();
   });
   // A transient stream hiccup (server 502 while resolving/proxying) shouldn't leave
   // the song stuck — auto-retry the source a few times before giving up.
@@ -1055,6 +1064,8 @@ function seekToFraction(frac) {
   else if (eng === "yt" && ytReady && yt) { try { yt.seekTo(t, true); } catch (e) {} }
   if (fillEl) fillEl.style.width = (frac * 100).toFixed(1) + "%";
   if (timeL) timeL.textContent = fmt(t);
+  if (typeof window.highlightLyrics === "function") window.highlightLyrics(true);
+  if (typeof window.syncLyricsFlowSeek === "function") window.syncLyricsFlowSeek();
 }
 function fracFromEvent(clientX) {
   const r = barEl.getBoundingClientRect();
@@ -1075,6 +1086,8 @@ if (barEl) {
   const endScrub = () => {
     scrubbing = false;
     npThumb?.classList.remove("is-scrubbing");
+    if (typeof window.highlightLyrics === "function") window.highlightLyrics(true);
+    if (typeof window.syncLyricsFlowSeek === "function") window.syncLyricsFlowSeek();
     if (!applyingRemote && typeof roomBroadcast === "function") roomBroadcast();
   };
   barEl.addEventListener("pointerup", endScrub);
@@ -1781,8 +1794,43 @@ frameToggle?.addEventListener("click", (e) => { e.stopPropagation(); openFrameMe
 document.addEventListener("click", (e) => { if (framePicker && !framePicker.contains(e.target)) openFrameMenu(false); });
 window.addEventListener("keydown", (e) => { if (e.key === "Escape" && frameMenu && !frameMenu.hidden) openFrameMenu(false); });
 // Also close the frame menu when the effect menu opens
+const webcamToggle = document.getElementById("webcamToggle");
+const webcamMenu = document.getElementById("webcamMenu");
+const webcamToggleVal = document.getElementById("webcamToggleVal");
+const webcamPicker = document.getElementById("webcamPicker");
+
+function openWebcamMenu(open) {
+  if (!webcamMenu) return;
+  if (open) { openFxMenu(false); if (typeof openFrameMenu === 'function') openFrameMenu(false); if (typeof openPlSheet === "function") openPlSheet(false); }
+  webcamMenu.hidden = !open;
+  if (webcamPicker) webcamPicker.classList.toggle("is-open", open);
+  if (webcamToggle) webcamToggle.setAttribute("aria-expanded", String(open));
+}
+
+webcamToggle?.addEventListener("click", (e) => { e.stopPropagation(); openWebcamMenu(webcamMenu.hidden); });
+document.addEventListener("click", (e) => { if (webcamPicker && !webcamPicker.contains(e.target)) openWebcamMenu(false); });
+window.addEventListener("keydown", (e) => { if (e.key === "Escape" && webcamMenu && !webcamMenu.hidden) openWebcamMenu(false); });
+
+webcamMenu?.addEventListener("click", (e) => {
+  const btn = e.target.closest(".fx-opt");
+  if (!btn) return;
+  [...webcamMenu.querySelectorAll(".fx-opt")].forEach((b) => b.classList.toggle("is-active", b === btn));
+  if (webcamToggleVal && btn.id !== "noneFxBtn") webcamToggleVal.textContent = btn.textContent;
+  if (webcamToggleVal && btn.id === "noneFxBtn") webcamToggleVal.textContent = "None";
+  openWebcamMenu(false);
+
+  if (btn.id === "noneFxBtn") {
+    if (window.FallingHearts?.isOpen) window.FallingHearts.close();
+    if (window.FallingBubbles?.isOpen) window.FallingBubbles.close();
+    if (window.LyricsFlow?.isOpen) window.LyricsFlow.close();
+    if (window.KineticAscii?.isOpen) window.KineticAscii.close();
+  }
+});
+
 const _origOpenFxMenu = openFxMenu;
-openFxMenu = function (open) { if (open) openFrameMenu(false); return _origOpenFxMenu(open); };
+openFxMenu = function (open) { if (open) { openFrameMenu(false); openWebcamMenu(false); } return _origOpenFxMenu(open); };
+const _origOpenFrameMenu = openFrameMenu;
+openFrameMenu = function (open) { if (open) { openFxMenu(false); openWebcamMenu(false); } return _origOpenFrameMenu(open); };
 applyFrame(currentFrameId, false);    // apply the saved frame on load
 
 /* ---------- Voice control (mic button) ----------
@@ -2837,10 +2885,14 @@ function tryPendingSeek() {
       const dur = audioEl.duration || 0;
       try { audioEl.currentTime = dur ? Math.min(pendingSeekSec, dur - 0.25) : pendingSeekSec; } catch (e) {}
       pendingSeekSec = null;
+      if (typeof window.highlightLyrics === "function") window.highlightLyrics(true);
+      if (typeof window.syncLyricsFlowSeek === "function") window.syncLyricsFlowSeek();
     }
   } else if (eng === "yt" && ytReady && yt && yt.seekTo) {
     try { yt.seekTo(pendingSeekSec, true); } catch (e) {}
     pendingSeekSec = null;
+    if (typeof window.highlightLyrics === "function") window.highlightLyrics(true);
+    if (typeof window.syncLyricsFlowSeek === "function") window.syncLyricsFlowSeek();
   } else {
     pendingSeekSec = null;   // spotify / none: best-effort, skip
   }
@@ -3361,32 +3413,60 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
     stage.classList.toggle("is-empty", !!msg);
   }
 
+  function isCleanLyricLine(txt) {
+    if (!txt || !txt.trim()) return false;
+    const s = txt.trim(), low = s.toLowerCase();
+    if (/^\[.*\]$/.test(s) || /^\(.*(?:chorus|verse|hook|bridge|intro|outro|interlude|solo|break|beat|repeat|refrain|skit|fade|ad-lib|vocal).*\)$/i.test(s) || /^-+.*-+$/.test(s)) return false;
+    if (/^(#|🎵|⚡|⏬|📸|📷|🚫|http|www\.|follow|subscribe|copyright|©|\(c\)|℗|\(p\)|credits|produced|written by|more from|connect with|listen to|download|stream|if you want|presents|lyrical video|official video|official audio|music video by|directed by|shot by|mixed by|mastered by|album:|track:|song:|singer:|artist:|management:|booking:|released on:|composer|lyricist|associated performer|studio personnel|vocals:|source:|transcribed by:|synced by:|lrc by:|uploaded by:|contributed by:|title:|label:|records|release date:)/i.test(low)) return false;
+    if (low.includes("provided to youtube by") || low.includes("auto-generated by youtube")) return false;
+    if (s.includes(":")) {
+      const parts = s.split(":");
+      const role = parts[0].trim().toLowerCase();
+      if (role.split(" ").length <= 4 && /producer|director|editor|mixer|engineer|performer|composer|lyricist|vocals|guitar|drums|bass|writer|written|label|records|released|source|title|artist|album|track|music|video|audio|credit|presents|presented/.test(role)) return false;
+    }
+    return true;
+  }
+  function cleanLyricText(txt) {
+    if (!txt) return "";
+    return txt.replace(/^\[(?:Verse|Chorus|Hook|Bridge|Intro|Outro|Refrain|Pre-Chorus|Interlude)[^\]]*\]\s*:\s*/i, "")
+              .replace(/^\[(?:Verse|Chorus|Hook|Bridge|Intro|Outro|Refrain|Pre-Chorus|Interlude)[^\]]*\]\s*/i, "")
+              .replace(/^\([^)]*(?:Verse|Chorus|Hook|Bridge|Intro|Outro|Refrain)[^)]*\)\s*:\s*/i, "")
+              .replace(/^\([^)]*(?:Verse|Chorus|Hook|Bridge|Intro|Outro|Refrain)[^)]*\)\s*/i, "")
+              .replace(/^\[?[A-Z][a-zA-Z0-9\s,.&'-]{1,25}:\]?\s*(?=[A-Z0-9'"(♪])/i, "")
+              .trim();
+  }
+
+  function synthesizeTimestamps(plainText, duration) {
+    if (!plainText) return [];
+    const rawLines = String(plainText).split(/\r?\n/).map(l => cleanLyricText(l)).filter(l => isCleanLyricLine(l));
+    if (!rawLines.length) return [];
+    const dur = (duration && duration > 20) ? duration : 180;
+    const startT = 6.0;
+    const endT = Math.max(startT + 10, dur - 10);
+    if (rawLines.length === 1) return [{ t: startT, text: rawLines[0] }];
+    const step = (endT - startT) / (rawLines.length - 1);
+    return rawLines.map((text, i) => ({ t: Math.round((startT + i * step) * 100) / 100, text }));
+  }
+
   function renderSynced(rows) {
-    lines = rows.map((r) => ({ t: r.t, text: r.text }));
+    const cleaned = rows.map((r) => ({ t: r.t, text: cleanLyricText(r.text) }))
+                        .filter((r) => isCleanLyricLine(r.text));
+    if (!cleaned.length) {
+      renderNone("not_found");
+      return;
+    }
+    lines = cleaned;
     synced = true; activeIdx = -2; curText = null;
     stage.classList.remove("is-plain");
     if (plainEl) { plainEl.hidden = true; plainEl.textContent = ""; }
     setStatus("");
     highlight(true);
+    if (typeof window.syncLyricsFlowSeek === "function") window.syncLyricsFlowSeek();
   }
   function renderPlain(text) {
-    synced = false; lines = []; activeIdx = -2; curText = null;
-    stage.classList.add("is-plain");
-    setStatus("");
-    if (plainEl) {
-      plainEl.hidden = false; plainEl.textContent = "";
-      // No timestamps for this track (LRCLIB only had plain text), so the lines
-      // can't scroll with the song — make that clear instead of looking broken.
-      const note = document.createElement("div");
-      note.className = "lyr-plain-note";
-      note.textContent = "Synced lyrics aren’t available for this song — showing the full lyrics.";
-      plainEl.appendChild(note);
-      (text || "").split(/\r?\n/).forEach((ln) => {
-        const p = document.createElement("div");
-        p.textContent = ln || " ";
-        plainEl.appendChild(p);
-      });
-    }
+    const syn = synthesizeTimestamps(text, curDuration() || 180);
+    if (syn.length) renderSynced(syn);
+    else renderNone("not_found");
   }
   function renderNone(apiError) {
     synced = false; lines = []; activeIdx = -2; curText = null;
@@ -3394,26 +3474,16 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
     if (plainEl) { plainEl.hidden = true; plainEl.textContent = ""; }
     if (nextEl) nextEl.textContent = "";
     showSharp("");
-    if (apiError) {
+    if (apiError && apiError !== "not_found") {
       setStatus("Couldn't reach lyrics server. Tap to retry.");
       if (status) { status.style.cursor = "pointer"; status.onclick = () => { status.style.cursor = ""; status.onclick = null; load(true); }; }
     } else {
-      setStatus("Lyrics aren't available for this track.");
+      setStatus("Couldn't find the lyrics OK");
     }
   }
 
   // ---- fetch --------------------------------------------------------------
-  function load(force) {
-    const d = target();
-    const k = songKey(d);
-    if (!d || !k.trim()) { key = ""; renderNone(); return; }
-    if (k === key && !force) return;
-    key = k;
-    setStatus("Finding lyrics…");
-    stage.classList.remove("is-plain");
-    if (plainEl) plainEl.hidden = true;
-    let dur = 0;
-    try { dur = Math.round(curDuration()) || 0; } catch (e) {}
+  function _doFetch(d, k, dur) {
     const seq = ++reqSeq;
     const qs = new URLSearchParams({ title: d.title || "", artist: d.artist || "" });
     if (dur) qs.set("duration", String(dur));
@@ -3431,6 +3501,33 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
         else renderNone(j && j.error);
       })
       .catch(() => { clearTimeout(to); if (seq === reqSeq) renderNone("fetch_error"); });
+  }
+  function load(force) {
+    const d = target();
+    const k = songKey(d);
+    if (!d || !k.trim()) { key = ""; renderNone(); return; }
+    if (k === key && !force) return;
+    key = k;
+    setStatus("Finding lyrics…");
+    stage.classList.remove("is-plain");
+    if (plainEl) plainEl.hidden = true;
+    let dur = 0;
+    try { dur = Math.round(curDuration()) || 0; } catch (e) {}
+    // If the audio metadata hasn't loaded yet (duration=0), wait up to 3s
+    // for it so the server can match the correct version of the song.
+    if (!dur) {
+      let waited = 0;
+      const poll = setInterval(() => {
+        waited += 100;
+        try { dur = Math.round(curDuration()) || 0; } catch (e) {}
+        if (dur || waited >= 400) {
+          clearInterval(poll);
+          _doFetch(d, k, dur);
+        }
+      }, 100);
+    } else {
+      _doFetch(d, k, dur);
+    }
   }
 
   // ---- highlight loop -----------------------------------------------------
@@ -3506,7 +3603,7 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
   // Close FAB menu when clicking outside of it and its children
   document.addEventListener("click", (e) => {
     if (document.body.classList.contains("fab-active")) {
-      const isFabOrChild = e.target.closest(".mobile-fab, .add-btn, .fx-picker, .pl-picker, .frame-picker, .room-btn, .fx-menu, .pl-menu, #frameMenu");
+      const isFabOrChild = e.target.closest(".mobile-fab, .add-btn, .fx-picker, .pl-picker, .frame-picker, .webcam-picker, .room-btn, .fx-menu, .pl-menu, #frameMenu, #webcamMenu");
       if (!isFabOrChild) {
         document.body.classList.remove("fab-active");
       }
@@ -3533,10 +3630,12 @@ saveAddedDiscs();   // rewrite storage without any duplicates that were loaded
   const fxPicker = document.getElementById('fxPicker');
   const plPicker = document.getElementById('plPicker');
   const framePicker = document.getElementById('framePicker');
+  const webcamPicker = document.getElementById('webcamPicker');
   
   if (fxPicker) { fxPicker.classList.add('fab-child', 'effect-picker'); liquidIcons.appendChild(fxPicker); }
   // plPicker is now natively in the transport controls
   if (framePicker) { framePicker.classList.add('fab-child', 'frame-picker'); liquidIcons.appendChild(framePicker); }
+  if (webcamPicker) { webcamPicker.classList.add('fab-child', 'webcam-picker'); liquidIcons.appendChild(webcamPicker); }
   
   liquidIcons.appendChild(mobileFab);
   fabWrapper.appendChild(liquidIcons);

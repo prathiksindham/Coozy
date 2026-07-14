@@ -759,6 +759,7 @@ const FallingHearts = (() => {
     if (window.FallingSnow && window.FallingSnow.isOpen) window.FallingSnow.close();
     if (window.FallingBubbles && window.FallingBubbles.isOpen) window.FallingBubbles.close();
     if (window.LyricsFlow && window.LyricsFlow.isOpen) window.LyricsFlow.close();
+    if (window.KineticAscii && window.KineticAscii.isOpen) window.KineticAscii.close();
     isOpen = true;
     mode = PRESETS[which] ? which : "hearts";
     tierIndex = pickInitialTier();

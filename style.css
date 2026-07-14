@@ -953,6 +953,7 @@ body.is-full .stage-bg { opacity: 1; }
 .fx-toggle:active { transform: scale(0.92); }
 .fx-ic { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 .fx-picker.is-open .fx-toggle { background: rgba(40, 44, 54, 0.85); border-color: rgba(255, 255, 255, 0.32); }
+.webcam-picker.is-open .fx-toggle { background: rgba(40, 44, 54, 0.85); border-color: rgba(255, 255, 255, 0.32); }
 
 .fx-menu {
   position: absolute;
@@ -1099,6 +1100,93 @@ body.hearts-active > :not(.hearts-overlay) { visibility: hidden; }
   58%  { transform: scale(1)    translateY(0); opacity: 1; }
   100% { transform: scale(1)    translateY(-16vmin); opacity: 0; }
 }
+
+/* ---------------- Kinetic ASCII Webcam Effect overlay ---------------- */
+.ascii-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #080a10;
+  animation: hearts-fade 0.25s ease;
+}
+body.ascii-active > :not(.ascii-overlay) { visibility: hidden; }
+.ascii-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.ascii-top-left {
+  position: absolute;
+  top: 24px;
+  left: 28px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ascii-mode-btn {
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(20, 22, 28, 0.85);
+  color: #fff;
+  font: 600 13px/1 "Inter", system-ui, sans-serif;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+.ascii-mode-btn:hover {
+  background: rgba(45, 50, 65, 0.95);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+.ascii-mode-btn:active {
+  transform: scale(0.94);
+}
+.ascii-close-btn {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(20, 22, 28, 0.85);
+  color: #fff;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+.ascii-close-btn:hover {
+  background: rgba(235, 50, 70, 0.9);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: scale(1.08);
+}
+.ascii-close-btn:active {
+  transform: scale(0.94);
+}
+.ascii-status {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: min(420px, 80vw);
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: rgba(24, 26, 32, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  font: 500 14px/1.5 "Inter", system-ui, sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+.ascii-status[hidden], .ascii-status:empty { display: none; }
 
 /* ---------------- Frame switcher (top-right, below the playlist icon) ---------------- */
 
@@ -2021,6 +2109,7 @@ body.is-full .player__arrow { opacity: 0; pointer-events: none; }
   /* Expanded state positions */
   body.fab-active .frame-picker { transform: translateY(-64px) scale(0.9); }
   body.fab-active .effect-picker { transform: translateY(-120px) scale(0.9); }
+  body.fab-active .webcam-picker { transform: translateY(-176px) scale(0.9); }
 
   
 @media (max-width: 600px) {

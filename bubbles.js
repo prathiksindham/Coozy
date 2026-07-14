@@ -834,6 +834,7 @@ const FallingBubbles = (() => {
     if (window.FallingHearts && window.FallingHearts.isOpen) window.FallingHearts.close();
     if (window.FallingSnow && window.FallingSnow.isOpen) window.FallingSnow.close();
     if (window.LyricsFlow && window.LyricsFlow.isOpen) window.LyricsFlow.close();
+    if (window.KineticAscii && window.KineticAscii.isOpen) window.KineticAscii.close();
     isOpen = true;
     tierIndex = pickInitialTier();
     buildOverlay();

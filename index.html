@@ -662,30 +662,23 @@
     </div>
   </div>
 
-  <!-- Falling Hearts webcam effect -->
-  <button class="fx-toggle" id="heartsFxBtn" aria-label="Falling hearts webcam effect" title="Falling hearts (webcam)">
-    <img class="hearts-btn-ic" src="assets/heart-red.svg" alt="" aria-hidden="true" />
-  </button>
-
-  <!-- Falling Petals webcam effect -->
-  <button class="fx-toggle" id="petalsFxBtn" aria-label="Falling petals webcam effect" title="Falling petals (webcam)">
-    <img class="hearts-btn-ic" src="assets/petal-4.svg" alt="" aria-hidden="true" />
-  </button>
-
-  <!-- Falling Snow webcam effect (scoop + throw snowballs by hand) -->
-  <button class="fx-toggle" id="snowFxBtn" aria-label="Falling snow webcam effect" title="Falling snow (webcam)">
-    <img class="hearts-btn-ic" src="assets/snowflake.svg" alt="" aria-hidden="true" />
-  </button>
-
-  <!-- Floating Bubbles webcam effect (pop with your body or a fingertip) -->
-  <button class="fx-toggle" id="bubblesFxBtn" aria-label="Floating bubbles webcam effect" title="Floating bubbles (webcam)">
-    <img class="hearts-btn-ic" src="assets/bubble.svg" alt="" aria-hidden="true" />
-  </button>
-
-  <!-- Lyrics Flow webcam effect (lyrics travel along your outline) -->
-  <button class="fx-toggle" id="lyricsFlowFxBtn" aria-label="Lyrics on body outline webcam effect" title="Lyrics on your outline (webcam)">
-    <img class="hearts-btn-ic" src="assets/lyrics-flow.svg" alt="" aria-hidden="true" />
-  </button>
+  <!-- Webcam effect picker -->
+  <div class="webcam-picker" id="webcamPicker" aria-label="Webcam effect">
+    <button class="fx-toggle" id="webcamToggle" aria-haspopup="listbox" aria-expanded="false" aria-label="Webcam Effect" title="Webcam Effect">
+      <svg class="fx-ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle>
+      </svg>
+      <span class="fx-toggle-val" id="webcamToggleVal" hidden>None</span>
+    </button>
+    <div class="fx-menu" id="webcamMenu" role="listbox" hidden>
+      <button class="fx-opt is-active" id="noneFxBtn" role="option">None</button>
+      <button class="fx-opt" id="heartsFxBtn" role="option">Hearts</button>
+      <button class="fx-opt" id="petalsFxBtn" role="option">Petals</button>
+      <button class="fx-opt" id="bubblesFxBtn" role="option">Bubbles</button>
+      <button class="fx-opt" id="lyricsFlowFxBtn" role="option">Lyrics Flow</button>
+      <button class="fx-opt" id="asciiFxBtn" role="option">ASCII</button>
+    </div>
+  </div>
   </div>
 
   <!-- Playlist selector (top-center) -->
@@ -891,8 +884,9 @@
   <script src="liquidglass.js?v=127"></script>
   <script src="login.js?v=127"></script>
   <script src="hearts.js?v=7"></script>
-  <script src="snow.js?v=1"></script>
+
   <script src="bubbles.js?v=2"></script>
   <script src="lyricsflow.js?v=5"></script>
+  <script src="ascii.js?v=1"></script>
 </body>
 </html>
